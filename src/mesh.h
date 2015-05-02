@@ -188,50 +188,50 @@ class Mesh {
         }
 
         void setBoundaryXY1(MeshBoundary* boundary) {
-            for(int i = 0; i < size[0]; i++)
-                for(int j = 0; j < size[1]; j++) {
-                    Fi[element(i, j, 0)] = boundary->Fi[j * size[0] + i];
-                    Ro[element(i, j, 0)] = boundary->Ro[j * size[0] + i];
+            for(int i = 1; i < size[0] - 1; i++)
+                for(int j = 1; j < size[1] - 1; j++) {
+                    Fi[element(i, j, 0)] = boundary->Fi[(j - 1) * size[0] + (i - 1)];
+                    Ro[element(i, j, 0)] = boundary->Ro[(j - 1) * size[0] + (i - 1)];
                 }
         }
 
         void setBoundaryXY2(MeshBoundary* boundary) {
-            for(int i = 1; i < size[0]; i++)
-                for(int j = 0; j < size[1]; j++) {
-                    Fi[element(i, j, size[2] - 1)] = boundary->Fi[j * size[0] + i];
-                    Ro[element(i, j, size[2] - 1)] = boundary->Ro[j * size[0] + i];
+            for(int i = 1; i < size[0] - 1; i++)
+                for(int j = 1; j < size[1] - 1; j++) {
+                    Fi[element(i, j, size[2] - 1)] = boundary->Fi[(j - 1) * size[0] + (i - 1)];
+                    Ro[element(i, j, size[2] - 1)] = boundary->Ro[(j - 1) * size[0] + (i - 1)];
                 }
         }
 
         void setBoundaryYZ1(MeshBoundary* boundary) {
-            for(int i = 1; i < size[1]; i++)
-                for(int j = 0; j < size[2]; j++) {
-                    Fi[element(0, i, j)] = boundary->Fi[j * size[1] + i];
-                    Ro[element(0, i, j)] = boundary->Ro[j * size[1] + i];
+            for(int i = 1; i < size[1] - 1; i++)
+                for(int j = 1; j < size[2] - 1; j++) {
+                    Fi[element(0, i, j)] = boundary->Fi[(j - 1) * size[1] + (i - 1)];
+                    Ro[element(0, i, j)] = boundary->Ro[(j - 1) * size[1] + (i - 1)];
                 }
         }
 
         void setBoundaryYZ2(MeshBoundary* boundary) {
-            for(int i = 1; i < size[1]; i++)
-                for(int j = 0; j < size[2]; j++) {
-                    Fi[element(size[0] - 1, i, j)] = boundary->Fi[j * size[1] + i];
-                    Ro[element(size[0] - 1, i, j)] = boundary->Ro[j * size[1] + i];
+            for(int i = 1; i < size[1] - 1; i++)
+                for(int j = 1; j < size[2] - 1; j++) {
+                    Fi[element(size[0] - 1, i, j)] = boundary->Fi[(j - 1) * size[1] + (i - 1)];
+                    Ro[element(size[0] - 1, i, j)] = boundary->Ro[(j - 1) * size[1] + (i - 1)];
                 }
         }
 
         void setBoundaryXZ1(MeshBoundary* boundary) {
-            for(int i = 1; i < size[0]; i++)
-                for(int j = 0; j < size[2]; j++) {
-                    Fi[element(i, 0, j)] = boundary->Fi[j * size[0] + i];
-                    Ro[element(i, 0, j)] = boundary->Ro[j * size[0] + i];
+            for(int i = 1; i < size[0] - 1; i++)
+                for(int j = 1; j < size[2] - 1; j++) {
+                    Fi[element(i, 0, j)] = boundary->Fi[(j - 1) * size[0] + (i - 1)];
+                    Ro[element(i, 0, j)] = boundary->Ro[(j - 1) * size[0] + (i - 1)];
                 }
         }
 
         void setBoundaryXZ2(MeshBoundary* boundary) {
-            for(int i = 1; i < size[0]; i++)
-                for(int j = 0; j < size[2]; j++) {
-                    Fi[element(i, size[1] - 1, j)] = boundary->Fi[j * size[0] + i];
-                    Ro[element(i, size[1] - 1, j)] = boundary->Ro[j * size[0] + i];
+            for(int i = 1; i < size[0] - 1; i++)
+                for(int j = 1; j < size[2] - 1; j++) {
+                    Fi[element(i, size[1] - 1, j)] = boundary->Fi[(j - 1) * size[0] + (i - 1)];
+                    Ro[element(i, size[1] - 1, j)] = boundary->Ro[(j - 1) * size[0] + (i - 1)];
                 }
         }
 
@@ -280,31 +280,31 @@ class Mesh {
             MeshBoundary* yz1 = new MeshBoundary(size[1] * size[2]);
             MeshBoundary* yz2 = new MeshBoundary(size[1] * size[2]);
 
-            for(int i = 1; i < size[0] - 1; ++i)
-                for(int j = 1; j < size[1] - 1; ++i) {
-                    xy1->Fi[(j - 1) * size[0] + (i - 1)] = getFi(i, j, 1);
-                    xy1->Ro[(j - 1) * size[0] + (i - 1)] = getRo(i, j, 1);
+            for(int i = 1; i < size[0] - 1; ++i) // x
+                for(int j = 1; j < size[1] - 1; ++i)  { // y
+                    xy1->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, 0)];
+                    xy1->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, j, 0)];
 
-                    xy2->Fi[(j - 1) * size[0] + (i - 1)] = getFi(i, j, size[2] - 1);
-                    xy2->Ro[(j - 1) * size[0] + (i - 1)] = getRo(i, j, size[2] - 1);
+                    xy2->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, size[2] - 1)];
+                    xy2->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, j, size[2] - 1)];
                 }
 
             for(int i = 1; i < size[0] - 1; ++i)
                 for(int j = 1; j < size[2] - 1; ++i) {
-                    xz1->Fi[(j - 1) * size[0] + (i - 1)] = getFi(i, 1, j);
-                    xz1->Ro[(j - 1) * size[0] + (i - 1)] = getRo(i, 1, j);
+                    xz1->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, 0, j)];
+                    xz1->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, 0, j)];
 
-                    xz2->Fi[(j - 1) * size[0] + (i - 1)] = getFi(i, size[1] - 1, j);
-                    xz2->Ro[(j - 1) * size[0] + (i - 1)] = getRo(i, size[1] - 1, j);
+                    xz2->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, size[1] - 1, j)];
+                    xz2->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, size[1] - 1, j)];
                 }
 
             for(int i = 1; i < size[1] - 1; ++i)
                 for(int j = 1; j < size[2] - 1; ++i) {
-                    yz1->Fi[(j - 1) * size[1] + (i - 1)] = getFi(1, i, j);
-                    yz1->Ro[(j - 1) * size[1] + (i - 1)] = getRo(1, i, j);
+                    yz1->Fi[(j - 1) * size[1] + (i - 1)] = Fi[element(0, i, j)];
+                    yz1->Ro[(j - 1) * size[1] + (i - 1)] = Ro[element(0, i, j)];
 
-                    yz2->Fi[(j - 1) * size[1] + (i - 1)] = getFi(size[0] - 1, i, j);
-                    yz2->Ro[(j - 1) * size[1] + (i - 1)] = getRo(size[0] - 1, i, j);
+                    yz2->Fi[(j - 1) * size[1] + (i - 1)] = Fi[element(size[0] - 1, i, j)];
+                    yz2->Ro[(j - 1) * size[1] + (i - 1)] = Ro[element(size[0] - 1, i, j)];
                 }
 
             result[0] = xy1;

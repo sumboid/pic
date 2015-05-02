@@ -51,6 +51,7 @@ int main()
   System* s = createSystem();
   s->addFragment(fragment);
 
+  s->setBalancer(lazybalancer);
   s->run();
 
   delete s;
