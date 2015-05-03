@@ -22,8 +22,16 @@ struct MeshBoundary {
         _size = size;
     }
 
+    MeshBoundary* copy() {
+        MeshBoundary* result = new MeshBoundary(_size);
+        memcpy(result->Fi, Fi, _size * sizeof(double));
+        memcpy(result->Ro, Ro, _size * sizeof(double));
+        return result;
+    }
+
     void serializeFi(ts::Arc* arc) {
         ts::Arc& a = *arc;
+        std::cout << "Serialize " << _size << " elements" << std::endl;
         a << _size;
         for(int i = 0; i < _size; ++i) a << Fi[i];
     }
@@ -38,6 +46,7 @@ struct MeshBoundary {
         ts::Arc& a = *arc;
         int size;
         a >> size;
+        std::cout << "Deserialize " << size << " elements" << std::endl;
         MeshBoundary* r = new MeshBoundary(size);
         for(int i = 0; i < size; ++i) a >> r->Fi[i];
         return r;
@@ -54,10 +63,19 @@ struct MeshBoundary {
     }
 };
 
+struct Force {
+  double _1;
+  double _2;
+};
+
 class Mesh {
     private:
         double* Fi;
         double* Ro;
+        Force* Fx;
+        Force* Fy;
+        Force* Fz;
+
         int size[3]; // X, Y, Z
 
         double hx, hy, hz;
@@ -82,8 +100,8 @@ class Mesh {
             Fi = new double[mesh_size];
             Ro = new double[mesh_size];
 
-            memset(Fi, 0, mesh_size * sizeof(double));
-            memset(Ro, 0, mesh_size * sizeof(double));
+            memset(Fi, 1, mesh_size * sizeof(double));
+            memset(Ro, 1, mesh_size * sizeof(double));
             for(int i = 0; i < 6; ++i) corners[i] = false;
         }
 
@@ -273,6 +291,7 @@ class Mesh {
 
         MeshBoundary** getBoundary() {
             MeshBoundary** result = new MeshBoundary*[6];
+            std::cout << "Heyho " << size[0] << " " << size[1] << std::endl;
             MeshBoundary* xy1 = new MeshBoundary(size[0] * size[1]);
             MeshBoundary* xy2 = new MeshBoundary(size[0] * size[1]);
             MeshBoundary* xz1 = new MeshBoundary(size[0] * size[2]);
@@ -281,16 +300,17 @@ class Mesh {
             MeshBoundary* yz2 = new MeshBoundary(size[1] * size[2]);
 
             for(int i = 1; i < size[0] - 1; ++i) // x
-                for(int j = 1; j < size[1] - 1; ++i)  { // y
+                for(int j = 1; j < size[1] - 1; ++j)  { // y
                     xy1->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, 0)];
                     xy1->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, j, 0)];
 
+                   // std::cout << "ELEMENT: " << element(i, j, size[2] - 1)  << " = (" << i << ", " << j << ", " << size[0] << ")" << std::endl;
                     xy2->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, size[2] - 1)];
                     xy2->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, j, size[2] - 1)];
                 }
 
             for(int i = 1; i < size[0] - 1; ++i)
-                for(int j = 1; j < size[2] - 1; ++i) {
+                for(int j = 1; j < size[2] - 1; ++j) {
                     xz1->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, 0, j)];
                     xz1->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, 0, j)];
 
@@ -299,7 +319,7 @@ class Mesh {
                 }
 
             for(int i = 1; i < size[1] - 1; ++i)
-                for(int j = 1; j < size[2] - 1; ++i) {
+                for(int j = 1; j < size[2] - 1; ++j) {
                     yz1->Fi[(j - 1) * size[1] + (i - 1)] = Fi[element(0, i, j)];
                     yz1->Ro[(j - 1) * size[1] + (i - 1)] = Ro[element(0, i, j)];
 

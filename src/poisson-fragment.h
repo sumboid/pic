@@ -25,7 +25,9 @@ private:
 public:
   ReduceData(): max(0) {}
   ReduceData(double _max): max(_max) {}
-  double get() { return max; }
+  double get() { 
+      return max; 
+  }
   virtual ~ReduceData() {}
   virtual ts::type::ReduceData* copy() { return new ReduceData(max); }
 };
@@ -44,9 +46,10 @@ public:
 
   ts::type::ReduceData* deserialize(ts::Arc* arc) {
     ts::Arc& a = *arc;
-    double Fi;
-    a >> Fi;
-    return new ReduceData(Fi);
+    double max;
+    a >> max;
+    ReduceData* rd = new ReduceData(max);
+    return rd;
   }
 
   ts::type::ReduceData* reduce(ts::type::ReduceData* rd1,
@@ -54,7 +57,7 @@ public:
     ReduceData* nrd1 = reinterpret_cast<ReduceData*>(rd1);
     ReduceData* nrd2 = reinterpret_cast<ReduceData*>(rd2);
 
-    return nrd1->get() > nrd2->get() ? nrd1 : nrd2;
+    return nrd1->get() > nrd2->get() ? rd1->copy() : rd2->copy();
   }
 };
 
@@ -107,6 +110,7 @@ public:
   }
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
+      std::cout << "State: (" << iteration()  << ", " << progress()  << ")" << std::endl;
       if(iteration() == 0 && progress() == 0) {
         max = mesh->process();
       }
@@ -119,15 +123,12 @@ public:
           struct _ {
             bool side;
             Fragment* fragment;
-            _ () : side(true) {}
+            _ () : side(false) {}
+            void set(Fragment* f) {
+                fragment = f;
+                side = true;
+            }
           } nbh[6]; // xy1, xy2, yz1, yz2, xz1, xz2
-
-          if (x == 0)  nbh[2].side = false;
-          if (x == bx) nbh[3].side = false;
-          if (y == 0)  nbh[4].side = false;
-          if (y == by) nbh[5].side = false;
-          if (z == 0)  nbh[2].side = false;
-          if (z == bz) nbh[1].side = false;
 
           for(auto nb : fs) {
               auto nid = nb->id();
@@ -136,12 +137,13 @@ public:
               auto nz = nid.c[2];
 
               Fragment* rnb = reinterpret_cast<Fragment*>(nb);
-              if      (nx > x) nbh[3].fragment = rnb;
-              else if (nx < x) nbh[2].fragment = rnb;
-              else if (ny > y) nbh[5].fragment = rnb;
-              else if (ny < y) nbh[4].fragment = rnb;
-              else if (nz > z) nbh[1].fragment = rnb;
-              else if (nz < z) nbh[0].fragment = rnb;
+              std::cout << "(" << x << ", " << y << ", " << z << ") -> (" << nx << ", " << ny << ", " << nz << ")" << std::endl;
+              if      (nx < x) nbh[2].set(rnb);
+              else if (nx > x) nbh[3].set(rnb);
+              else if (ny < y) nbh[4].set(rnb);
+              else if (ny > y) nbh[5].set(rnb);
+              else if (nz < z) nbh[0].set(rnb);
+              else if (nz > z) nbh[1].set(rnb);
           }
 
           for(int i = 0; i < 6; ++i)
@@ -161,6 +163,7 @@ public:
       saveState();
       setUpdate();
       setReduce();
+      setNeighbours(iteration(), progress());
   }
 
   ReduceData* reduce() override {
@@ -189,6 +192,7 @@ public:
 
     fragment->setBoundary();
     fragment->Fi = true;
+    fragment->Ro = false;
     // TODO: some boundaries may be empty
     return fragment;
   }
@@ -221,7 +225,7 @@ public:
 
   static Fragment* deserializeBoundary(ts::Arc* arc) {
     ts::Arc& a = *arc;
-    int x, y, z;
+    uint64_t x, y, z;
     a >> x;
     a >> y;
     a >> z;
@@ -276,13 +280,27 @@ public:
   }
 
   Fragment* copy() override {
-    Fragment* f = new Fragment(id());
-    f->setMesh(mesh->copy());
-    f->bx = bx;
-    f->by = by;
-    f->bz = bz;
+    if(!isBoundary()) {
+        Fragment* f = new Fragment(id());
+        f->setMesh(mesh->copy());
+        f->bx = bx;
+        f->by = by;
+        f->bz = bz;
+        return f;
+    } else {
+        Fragment* f = new Fragment(id());
+        f->xy1 = xy1->copy();
+        f->xy2 = xy2->copy();
+        f->xz1 = xz1->copy();
+        f->xz2 = xz2->copy();
+        f->yz1 = yz1->copy();
+        f->yz2 = yz2->copy();
+        
+        f->Fi = Fi;
+        f->Ro = Ro;
+        return f;
+    }
 
-    return f;
   }
 
   uint64_t weight() {
