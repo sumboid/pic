@@ -71,12 +71,12 @@ private:
   double max;
 
   //Boundary stuff
-  MeshBoundary* xy1;
-  MeshBoundary* xy2;
-  MeshBoundary* xz1;
-  MeshBoundary* xz2;
-  MeshBoundary* yz1;
-  MeshBoundary* yz2;
+  FiBoundary* xy1;
+  FiBoundary* xy2;
+  FiBoundary* xz1;
+  FiBoundary* xz2;
+  FiBoundary* yz1;
+  FiBoundary* yz2;
   bool Fi;
   bool Ro;
 
@@ -148,12 +148,12 @@ public:
 
           for(int i = 0; i < 6; ++i)
               if(nbh[i].side != false) {
-                  if      (i == 0) mesh->setBoundaryXY1(nbh[i].fragment->xy1);
-                  else if (i == 1) mesh->setBoundaryXY2(nbh[i].fragment->xy2);
-                  else if (i == 2) mesh->setBoundaryYZ1(nbh[i].fragment->yz1);
-                  else if (i == 3) mesh->setBoundaryYZ2(nbh[i].fragment->yz2);
-                  else if (i == 4) mesh->setBoundaryXZ1(nbh[i].fragment->xz1);
-                  else if (i == 5) mesh->setBoundaryXZ2(nbh[i].fragment->xz2);
+                  if      (i == 0) mesh->setBoundaryFiXY1(nbh[i].fragment->xy1);
+                  else if (i == 1) mesh->setBoundaryFiXY2(nbh[i].fragment->xy2);
+                  else if (i == 2) mesh->setBoundaryFiYZ1(nbh[i].fragment->yz1);
+                  else if (i == 3) mesh->setBoundaryFiYZ2(nbh[i].fragment->yz2);
+                  else if (i == 4) mesh->setBoundaryFiXZ1(nbh[i].fragment->xz1);
+                  else if (i == 5) mesh->setBoundaryFiXZ2(nbh[i].fragment->xz2);
               }
 
           max = mesh->process();
@@ -181,7 +181,7 @@ public:
   }
 
   Fragment* getBoundary() override {
-    MeshBoundary** boundary = mesh->getBoundary();
+    FiBoundary** boundary = mesh->getBoundary();
     Fragment* fragment = new Fragment(id());
     fragment->xy1 = boundary[0];
     fragment->xy2 = boundary[1];
@@ -207,12 +207,12 @@ public:
     a << Ro;
 
     if(Fi == true) {
-      xy1->serializeFi(arc);
-      xy2->serializeFi(arc);
-      yz1->serializeFi(arc);
-      yz2->serializeFi(arc);
-      xz1->serializeFi(arc);
-      xz2->serializeFi(arc);
+      xy1->serialize(arc);
+      xy2->serialize(arc);
+      yz1->serialize(arc);
+      yz2->serialize(arc);
+      xz1->serialize(arc);
+      xz2->serialize(arc);
     } else if(Ro == true) {
       xy1->serializeRo(arc);
       xy2->serializeRo(arc);
@@ -236,19 +236,19 @@ public:
     a >> f->Ro;
 
     if(f->Fi == true) {
-      f->xy1 = MeshBoundary::deserializeFi(arc);
-      f->xy2 = MeshBoundary::deserializeFi(arc);
-      f->yz1 = MeshBoundary::deserializeFi(arc);
-      f->yz2 = MeshBoundary::deserializeFi(arc);
-      f->xz1 = MeshBoundary::deserializeFi(arc);
-      f->xz2 = MeshBoundary::deserializeFi(arc);
+      f->xy1 = FiBoundary::deserialize(arc);
+      f->xy2 = FiBoundary::deserialize(arc);
+      f->yz1 = FiBoundary::deserialize(arc);
+      f->yz2 = FiBoundary::deserialize(arc);
+      f->xz1 = FiBoundary::deserialize(arc);
+      f->xz2 = FiBoundary::deserialize(arc);
     } else if(f->Ro == true) {
-      f->xy1 = MeshBoundary::deserializeRo(arc);
-      f->xy2 = MeshBoundary::deserializeRo(arc);
-      f->yz1 = MeshBoundary::deserializeRo(arc);
-      f->yz2 = MeshBoundary::deserializeRo(arc);
-      f->xz1 = MeshBoundary::deserializeRo(arc);
-      f->xz2 = MeshBoundary::deserializeRo(arc);
+      f->xy1 = FiBoundary::deserializeRo(arc);
+      f->xy2 = FiBoundary::deserializeRo(arc);
+      f->yz1 = FiBoundary::deserializeRo(arc);
+      f->yz2 = FiBoundary::deserializeRo(arc);
+      f->xz1 = FiBoundary::deserializeRo(arc);
+      f->xz2 = FiBoundary::deserializeRo(arc);
     }
 
     return f;
@@ -295,7 +295,7 @@ public:
         f->xz2 = xz2->copy();
         f->yz1 = yz1->copy();
         f->yz2 = yz2->copy();
-        
+
         f->Fi = Fi;
         f->Ro = Ro;
         return f;
