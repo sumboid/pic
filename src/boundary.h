@@ -225,28 +225,6 @@ struct RoBoundary {
     double* YZ1;
     double* YZ2;
 
-    double* XZ1XY1;
-    double* XZ1XY2;
-    double* XZ1YZ1;
-    double* XZ1YZ2;
-    double* XZ2XY1;
-    double* XZ2XY2;
-    double* XZ2YZ1;
-    double* XZ2YZ2;
-    double* XY1YZ1;
-    double* XY1YZ2;
-    double* XY2YZ1;
-    double* XY2YZ2;
-
-    double XZ1XY1YZ1[2];
-    double XZ1XY2YZ1[2];
-    double XZ2XZ1YZ1[2];
-    double XZ2XY2YZ1[2];
-    double XZ1XY1YZ2[2];
-    double XZ1XY2YZ2[2];
-    double XZ2XZ1YZ2[2];
-    double XZ2XY2YZ2[2];
-
     int _size[3];
     int64_t id[3];
 
@@ -257,19 +235,6 @@ struct RoBoundary {
         delete[] XZ2;
         delete[] YZ1;
         delete[] YZ2;
-
-        delete[] XZ1XY1;
-        delete[] XZ1XY2;
-        delete[] XZ1YZ1;
-        delete[] XZ1YZ2;
-        delete[] XZ2XY1;
-        delete[] XZ2XY2;
-        delete[] XZ2YZ1;
-        delete[] XZ2YZ2;
-        delete[] XY1YZ1;
-        delete[] XY1YZ2;
-        delete[] XY2YZ1;
-        delete[] XY2YZ2;
     }
 
     RoBoundary(int sizeX, int sizeY, int sizeZ) {
@@ -279,19 +244,6 @@ struct RoBoundary {
         XZ2 = new double[2 * sizeX * sizeZ];
         YZ1 = new double[2 * sizeY * sizeZ];
         YZ2 = new double[2 * sizeY * sizeZ];
-
-        XZ1XY1 = new double[2 * sizeX];
-        XZ1XY2 = new double[2 * sizeX];
-        XZ1YZ1 = new double[2 * sizeZ];
-        XZ1YZ2 = new double[2 * sizeZ];
-        XZ2XY1 = new double[2 * sizeX];
-        XZ2XY2 = new double[2 * sizeX];
-        XZ2YZ1 = new double[2 * sizeZ];
-        XZ2YZ2 = new double[2 * sizeZ];
-        XY1YZ1 = new double[2 * sizeY];
-        XY1YZ2 = new double[2 * sizeY];
-        XY2YZ1 = new double[2 * sizeY];
-        XY2YZ2 = new double[2 * sizeY];
 
         size[0] = sizeX;
         size[1] = sizeY;
@@ -306,36 +258,6 @@ struct RoBoundary {
         memcpy(result->XZ2, XZ2, 2 * size[0] * size[2] * sizeof(double));
         memcpy(result->YZ1, YZ1, 2 * size[1] * size[2] * sizeof(double));
         memcpy(result->YZ2, YZ2, 2 * size[1] * size[2] * sizeof(double));
-
-        memcpy(result->XZ1XY1, XZ1XY1, 2 * size[0] * sizeof(double));
-        memcpy(result->XZ1XY2, XZ1XY2, 2 * size[0] * sizeof(double));
-        memcpy(result->XZ1YZ1, XZ1YZ1, 2 * size[2] * sizeof(double));
-        memcpy(result->XZ1YZ2, XZ1YZ2, 2 * size[2] * sizeof(double));
-        memcpy(result->XZ2XY1, XZ2XY1, 2 * size[0] * sizeof(double));
-        memcpy(result->XZ2XY2, XZ2XY2, 2 * size[0] * sizeof(double));
-        memcpy(result->XZ2YZ1, XZ2YZ1, 2 * size[2] * sizeof(double));
-        memcpy(result->XZ2YZ2, XZ2YZ2, 2 * size[2] * sizeof(double));
-        memcpy(result->XY1YZ1, XY1YZ1, 2 * size[1] * sizeof(double));
-        memcpy(result->XY1YZ2, XY1YZ2, 2 * size[1] * sizeof(double));
-        memcpy(result->XY2YZ1, XY2YZ1, 2 * size[1] * sizeof(double));
-        memcpy(result->XY2YZ2, XY2YZ2, 2 * size[1] * sizeof(double));
-
-        result->XZ1XY1YZ1[0] = XZ1XY1YZ1[0];
-        result->XZ1XY1YZ1[1] = XZ1XY1YZ1[1];
-        result->XZ1XY2YZ1[0] = XZ1XY2YZ1[0];
-        result->XZ1XY2YZ1[1] = XZ1XY2YZ1[1];
-        result->XZ2XZ1YZ1[0] = XZ2XZ1YZ1[0];
-        result->XZ2XZ1YZ1[1] = XZ2XZ1YZ1[1];
-        result->XZ2XY2YZ1[0] = XZ2XY2YZ1[0];
-        result->XZ2XY2YZ1[1] = XZ2XY2YZ1[1];
-        result->XZ1XY1YZ2[0] = XZ1XY1YZ2[0];
-        result->XZ1XY1YZ2[1] = XZ1XY1YZ2[1];
-        result->XZ1XY2YZ2[0] = XZ1XY2YZ2[0];
-        result->XZ1XY2YZ2[1] = XZ1XY2YZ2[1];
-        result->XZ2XZ1YZ2[0] = XZ2XZ1YZ2[0];
-        result->XZ2XZ1YZ2[1] = XZ2XZ1YZ2[1];
-        result->XZ2XY2YZ2[0] = XZ2XY2YZ2[0];
-        result->XZ2XY2YZ2[1] = XZ2XY2YZ2[1];
 
         return result;
     }
@@ -356,27 +278,6 @@ struct RoBoundary {
         for(int i = 0; i < 2 * size[1] * size[2]; ++i) {
             a << YZ1[i] << YZ2[i];
         }
-
-        for(int i = 0; i < 2 * size[0]; ++i) {
-            a << XZ1XY1[i] << XZ1XY2[i] << XZ2XY1[i] << XZ2XY2[i];
-        }
-
-        for(int i = 0; i < 2 * size[1]; ++i) {
-            a << XY1YZ1[i] << XY1YZ2[i] << XY2YZ1[i] << XY2YZ2[i];
-        }
-
-        for(int i = 0; i < 2 * size[2]; ++i) {
-            a << XZ1YZ1[i] << XZ1YZ2[i] << XZ2YZ1[i] << XZ2YZ2[i];
-        }
-
-        a << XZ1XY1YZ1[0] << XZ1XY1YZ1[1];
-        a << XZ1XY2YZ1[0] << XZ1XY2YZ1[1];
-        a << XZ2XZ1YZ1[0] << XZ2XZ1YZ1[1];
-        a << XZ2XY2YZ1[0] << XZ2XY2YZ1[1];
-        a << XZ1XY1YZ2[0] << XZ1XY1YZ2[1];
-        a << XZ1XY2YZ2[0] << XZ1XY2YZ2[1];
-        a << XZ2XZ1YZ2[0] << XZ2XZ1YZ2[1];
-        a << XZ2XY2YZ2[0] << XZ2XY2YZ2[0];
     }
 
     static RoBoundary* deserialize(ts::Arc* arc) {
@@ -406,44 +307,6 @@ struct RoBoundary {
             a >> r->YZ1[i];
             a >> r->YZ2[i];
         }
-
-        for(int i = 0; i < 2 * size[0]; ++i) {
-            a >> r->XZ1XY1[i];
-            a >> r->XZ1XY2[i];
-            a >> r->XZ2XY1[i];
-            a >> r->XZ2XY2[i];
-        }
-
-        for(int i = 0; i < 2 * size[1]; ++i) {
-            a >> r->XY1YZ1[i];
-            a >> r->XY1YZ2[i];
-            a >> r->XY2YZ1[i];
-            a >> r->XY2YZ2[i];
-        }
-
-        for(int i = 0; i < 2 * size[2]; ++i) {
-            a >> r->XZ1YZ1[i];
-            a >> r->XZ1YZ2[i];
-            a >> r->XZ2YZ1[i];
-            a >> r->XZ2YZ2[i];
-        }
-
-        a >> r->XZ1XY1YZ1[0];
-        a >> r->XZ1XY1YZ1[1];
-        a >> r->XZ1XY2YZ1[0];
-        a >> r->XZ1XY2YZ1[1];
-        a >> r->XZ2XZ1YZ1[0];
-        a >> r->XZ2XZ1YZ1[1];
-        a >> r->XZ2XY2YZ1[0];
-        a >> r->XZ2XY2YZ1[1];
-        a >> r->XZ1XY1YZ2[0];
-        a >> r->XZ1XY1YZ2[1];
-        a >> r->XZ1XY2YZ2[0];
-        a >> r->XZ1XY2YZ2[1];
-        a >> r->XZ2XZ1YZ2[0];
-        a >> r->XZ2XZ1YZ2[1];
-        a >> r->XZ2XY2YZ2[0];
-        a >> r->XZ2XY2YZ2[1];
 
         return r;
     }

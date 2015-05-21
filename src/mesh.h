@@ -404,344 +404,263 @@ class Mesh {
                 if(bid[0] == id[0] &&
                    bid[1] == id[1] &&
                    bid[2]  > id[2]) {
-                    for(int i = 1; i < size[0] - 1; i++)
-                        for(int j = 1; j < size[1] - 1; j++) {
-                            Ro[element(i, j, size[2] - 1)] += b->XY1[(j - 1) * size[0] + (i - 1)];
-                            Ro[element(i, j, size[2] - 2)] += b->XY1[(size[0] * size[1]) + (j - 1) * size[0] + (i - 1)];
+                    for(int i = 0; i < size[0]; i++)
+                        for(int j = 0; j < size[1]; j++) {
+                            Ro[element(i, j, size[2] - 1)] += b->XY1[j * size[0] + i];
+                            Ro[element(i, j, size[2] - 2)] += b->XY1[(size[0] * size[1]) + j * size[0] + i];
                         }
-
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, 0, size[2] - 1)] += b->XZ1XY1[i - 1];
-                        Ro[element(i, 0, size[2] - 2)] += b->XZ1XY1[(size[0] - 2) + i - 1];
-                        Ro[element(i, size[1] - 1, size[2] - 1)] += b->XZ2XY1[i - 1];
-                        Ro[element(i, size[1] - 1, size[2] - 2)] += b->XZ2XY1[(size[0] - 2) + i - 1];
-                    }
-
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(0, i, size[2] - 1)] += b->XY1YZ1[i - 1];
-                        Ro[element(0, i, size[2] - 2)] += b->XY1YZ1[(size[1] - 2) + i - 1];
-                        Ro[element(size[0] - 1, i, size[2] - 1)] += b->XY1YZ2[i - 1];
-                        Ro[element(size[0] - 1, i, size[2] - 2)] += b->XY1YZ2[(size[1] - 2) + i - 1];
-                    }
-
-                    Ro[element(0, 0, size[2] - 1)] += b->XZ1XY1YZ1[0];
-                    Ro[element(0, 0, size[2] - 2)] += b->XZ1XY1YZ1[1];
-                    Ro[element(size[0] - 1, size[1] - 1, size[2] - 1)] += b->XZ2XY1YZ2[0];
-                    Ro[element(size[0] - 1, size[1] - 1, size[2] - 2)] += b->XZ2XY1YZ2[1];
-                    Ro[element(0, size[1] - 1, size[2] - 1)] += b->XZ2XY1YZ1[0];
-                    Ro[element(0, size[1] - 1, size[2] - 2)] += b->XZ2XY1YZ1[1];
-                    Ro[element(size[0] - 1, 0, size[2] - 1)] += b->XZ1XY1YZ2[0];
-                    Ro[element(size[0] - 1, 0, size[2] - 2)] += b->XZ1XY1YZ2[1];
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[0] - 1; i++)
-                        for(int j = 1; j < size[1] - 1; j++) {
-                            Ro[element(i, j, 0)] += b->XY2[(j - 1) * size[0] + (i - 1)];
-                            Ro[element(i, j, 1)] += b->XY2[(size[0] * size[1]) + (j - 1) * size[0] + (i - 1)];
+                    for(int i = 0; i < size[0]; i++)
+                        for(int j = 0; j < size[1]; j++) {
+                            Ro[element(i, j, 0)] += b->XY2[j * size[0]];
+                            Ro[element(i, j, 1)] += b->XY2[(size[0] * size[1]) + j * size[0] + i];
                         }
-
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, 0, 0)] += b->XZ1XY2[i - 1];
-                        Ro[element(i, 0, 1)] += b->XZ1XY2[(size[0] - 2) + i - 1];
-                        Ro[element(i, size[1] - 1, 0)] += b->XZ2XY2[i - 1];
-                        Ro[element(i, size[1] - 1, 1)] += b->XZ2XY2[(size[0] - 2) + i - 1];
-                    }
-
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(0, i, 0)] += b->XY2YZ1[i - 1];
-                        Ro[element(0, i, 1)] += b->XY2YZ1[(size[1] - 2) + i - 1];
-                        Ro[element(size[0] - 1, i, 0)] += b->XY2YZ2[i - 1];
-                        Ro[element(size[0] - 1, i, 1)] += b->XY2YZ2[(size[1] - 2) + i - 1];
-                    }
-
-                    Ro[element(0, 0, 0)] += b->XZ1XY2YZ1[0];
-                    Ro[element(0, 0, 1)] += b->XZ1XY2YZ1[1];
-                    Ro[element(size[0] - 1, size[1] - 1, 0)] += b->XZ2XY2YZ2[0];
-                    Ro[element(size[0] - 1, size[1] - 1, 1)] += b->XZ2XY2YZ2[1];
-                    Ro[element(0, size[1] - 1, 0)] += b->XZ2XY2YZ1[0];
-                    Ro[element(0, size[1] - 1, 1] += b->XZ2XY2YZ1[1];
-                    Ro[element(size[0] - 1, 0, 0)] += b->XZ1XY2YZ2[0];
-                    Ro[element(size[0] - 1, 0, 1)] += b->XZ1XY2YZ2[1];
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  > id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[0] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Ro[element(i, size[1] - 1, j)] += b->XZ1[(j - 1) * size[0] + (i - 1)];
-                            Ro[element(i, size[1] - 2, j)] += b->XZ1[(size[0] * size[2]) + (j - 1) * size[0] + (i - 1)];
+                    for(int j = 0; j < size[2]; j++)
+                        for(int i = 0; i < size[0]; i++) {
+                            Ro[element(i, size[1] - 1, j)] += b->XZ1[j * size[0] + i];
+                            Ro[element(i, size[1] - 2, j)] += b->XZ1[(size[0] * size[2]) + j * size[0] + i];
                         }
-
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, size[1] - 1, 0)] += b->XZ1XY1[i - 1];
-                        Ro[element(i, size[1] - 2, 0)] += b->XZ1XY1[(size[0] - 2) + i - 1];
-                        Ro[element(i, size[1] - 1, size[2] - 1)] += b->XZ1XY2[i - 1];
-                        Ro[element(i, size[1] - 2, size[2] - 1)] += b->XZ1XY2[(size[0] - 2) + i - 1];
-                    }
-
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(0, size[1] - 1, i)] += b->XZ1YZ1[i - 1];
-                        Ro[element(0, size[1] - 2, i)] += b->XZ1YZ1[(size[2] - 2) + i - 1];
-                        Ro[element(size[0] - 1, size[1] - 1, i)] += b->XZ1YZ2[i - 1];
-                        Ro[element(size[0] - 1, size[1] - 2, i)] += b->XZ1YZ2[(size[2] - 2) + i - 1];
-                    }
-
-                    Ro[element(0, size[1] - 1, 0)] += b->XZ1XY1YZ1[0];
-                    Ro[element(0, size[1] - 2, 0)] += b->XZ1XY1YZ1[1];
-                    Ro[element(size[0] - 1, size[1] - 1, size[2] - 1)] += b->XZ1XY2YZ2[0];
-                    Ro[element(size[0] - 1, size[1] - 2, size[2] - 1)] += b->XZ1XY2YZ2[1];
-                    Ro[element(0, size[1] - 1, size[2] - 1)] += b->XZ1XY2YZ1[0];
-                    Ro[element(0, size[1] - 2, size[2] - 1)] += b->XZ1XY2YZ1[1];
-                    Ro[element(size[0] - 1, size[1] - 1, 0)] += b->XZ1XY1YZ2[0];
-                    Ro[element(size[0] - 1, size[1] - 2, 0)] += b->XZ1XY1YZ2[1];
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  < id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[0] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Ro[element(i, 0, j)] += b->XZ2[(j - 1) * size[0] + (i - 1)];
-                            Ro[element(i, 1, j)] += b->XZ2[(size[0] * size[2]) + (j - 1) * size[0] + (i - 1)];
+                    for(int i = 0; i < size[0]; i++)
+                        for(int j = 0; j < size[2]; j++) {
+                            Ro[element(i, 0, j)] += b->XZ2[j * size[0] + i];
+                            Ro[element(i, 1, j)] += b->XZ2[(size[0] * size[2]) + j * size[0] + i];
                         }
-
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, 0, 0)] += b->XZ2XY1[i - 1];
-                        Ro[element(i, 1, 0)] += b->XZ2XY1[(size[0] - 2) + i - 1];
-                        Ro[element(i, 0, size[2] - 1)] += b->XZ2XY2[i - 1];
-                        Ro[element(i, 1, size[2] - 1)] += b->XZ2XY2[(size[0] - 2) + i - 1];
-                    }
-
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(0, 0, i)] += b->XZ2YZ1[i - 1];
-                        Ro[element(0, 1, i)] += b->XZ2YZ1[(size[2] - 2) + i - 1];
-                        Ro[element(size[0] - 1, 0, i)] += b->XZ2YZ2[i - 1];
-                        Ro[element(size[0] - 1, 1, i)] += b->XZ2YZ2[(size[2] - 2) + i - 1];
-                    }
-
-                    Ro[element(0, 0, 0)] += b->XZ2XY1YZ1[0];
-                    Ro[element(0, 1, 0)] += b->XZ2XY1YZ1[1];
-                    Ro[element(size[0] - 1, 0, size[2] - 1)] += b->XZ2XY2YZ2[0];
-                    Ro[element(size[0] - 1, 1, size[2] - 1)] += b->XZ2XY2YZ2[1];
-                    Ro[element(0, 0, size[2] - 1)] += b->XZ2XY2YZ1[0];
-                    Ro[element(0, 1, size[2] - 1)] += b->XZ2XY2YZ1[1];
-                    Ro[element(size[0] - 1, 0, 0)] += b->XZ2XY1YZ2[0];
-                    Ro[element(size[0] - 1, 1, 0)] += b->XZ2XY1YZ2[1];
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1] == id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[1] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Ro[element(size[0] - 1, i, j)] += b->YZ1[(j - 1) * size[1] + (i - 1)];
-                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + (j - 1) * size[1] + (i - 1)];
+                    for(int i = 0; i < size[1]; i++)
+                        for(int j = 0; j < size[2]; j++) {
+                            Ro[element(size[0] - 1, i, j)] += b->YZ1[i * size[2] + j];
+                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + i * size[2] + j];
                         }
-
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(size[0] - 1, 0, i)] += b->XZ1YZ1[i - 1];
-                        Ro[element(size[0] - 2, 0, i)] += b->XZ1YZ1[(size[2] - 2) + i - 1];
-                        Ro[element(size[0] - 1, size[1] - 1, i)] += b->XZ2YZ1[i - 1];
-                        Ro[element(size[0] - 2, size[1] - 1, i)] += b->XZ2YZ1[(size[2] - 2) + i - 1];
-                    }
-
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(size[0] - 1, i, 0)] += b->XY1YZ1[i - 1];
-                        Ro[element(size[0] - 2, i, 0)] += b->XY1YZ1[(size[1] - 2) + i - 1];
-                        Ro[element(size[0] - 1, i, size[2] - 1)] += b->XY2YZ1[i - 1];
-                        Ro[element(size[0] - 2, i, size[2] - 1)] += b->XY2YZ1[(size[1] - 2) + i - 1];
-                    }
-
-                    Ro[element(size[0] - 1, 0, 0)] += b->XZ1XY1YZ1[0];
-                    Ro[element(size[0] - 2, 0, 0)] += b->XZ1XY1YZ1[1];
-                    Ro[element(size[0] - 1, size[1] - 1, 0)] += b->XZ2XY1YZ1[0];
-                    Ro[element(size[0] - 2, size[1] - 1, 0)] += b->XZ2XY1YZ1[1];
-                    Ro[element(size[0] - 1, 0, size[2] - 1)] += b->XZ1XY2YZ1[0];
-                    Ro[element(size[0] - 2, 0, size[2] - 1)] += b->XZ1XY2YZ1[1];
-                    Ro[element(size[0] - 1, size[1] - 1, size[2] - 1)] += b->XZ2XY2YZ1[0];
-                    Ro[element(size[0] - 2, size[1] - 1, size[2] - 1)] += b->XZ2XY2YZ1[1];
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1] == id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[1] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Ro[element(0, i, j)] += b->YZ2[(j - 1) * size[1] + (i - 1)];
-                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + (j - 1) * size[1] + (i - 1)];
+                    for(int i = 0; i < size[1]; i++)
+                        for(int j = 0; j < size[2]; j++) {
+                            Ro[element(0, i, j)] += b->YZ2[j * size[1] + i];
+                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + j * size[1] + i];
                         }
-
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(0, 0, i)] += b->XZ1YZ2[i - 1];
-                        Ro[element(1, 0, i)] += b->XZ1YZ2[(size[2] - 2) + i - 1];
-                        Ro[element(0, size[1] - 1, i)] += b->XZ2YZ2[i - 1];
-                        Ro[element(1, size[1] - 1, i)] += b->XZ2YZ2[(size[2] - 2) + i - 1];
-                    }
-
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(0, i, 0)] += b->XY1YZ2[i - 1];
-                        Ro[element(1, i, 0)] += b->XY1YZ2[(size[1] - 2) + i - 1];
-                        Ro[element(0, i, size[2] - 1)] += b->XY2YZ2[i - 1];
-                        Ro[element(1, i, size[2] - 1)] += b->XY2YZ2[(size[1] - 2) + i - 1];
-                    }
-
-                    Ro[element(0, 0, 0)] += b->XZ1XY1YZ2[0];
-                    Ro[element(1, 0, 0)] += b->XZ1XY1YZ2[1];
-                    Ro[element(0, size[1] - 1, 0)] += b->XZ2XY1YZ2[0];
-                    Ro[element(1, size[1] - 1, 0)] += b->XZ2XY1YZ2[1];
-                    Ro[element(0, 0, size[2] - 1)] += b->XZ1XY2YZ2[0];
-                    Ro[element(1, 0, size[2] - 1)] += b->XZ1XY2YZ2[1];
-                    Ro[element(0, size[1] - 1, size[2] - 1)] += b->XZ2XY2YZ2[0];
-                    Ro[element(1, size[1] - 1, size[2] - 1)] += b->XZ2XY2YZ2[1];
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1]  < id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(0, 0, i)] = b->XZ2YZ2[i - 1];
 
-                    }
+                    for(int i = 0; i <= 1; ++i)
+                        for(int j = 0; j < size[2]; ++j) {
+                            Ro[element(0, i, j)] += b->YZ2[i * size[2] + j];
+                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + i * size[2] + j];
+                        }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1]  > id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(0, size[1] - 1, i)] = b->XZ1YZ2[i - 1];
-                    }
+                    for(int i = size[1] - 2; i <= size[1] - 1; ++i)
+                        for(int j = 0; j < size[2]; ++j) {
+                            Ro[element(0, i, j)] += b->YZ2[(size[1] - i + 2) * size[2] + j];
+                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + (size[1] - i + 2) * size[2] + j];
+                        }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1]  < id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(size[0] - 1, 0, i)] = b->XZ2YZ1[i - 1];
-                    }
+                    for(int i = 0; i <= 1; ++i)
+                        for(int j = 0; j < size[2]; ++j) {
+                            Ro[element(size[0] - 1, i, j)] += b->YZ1[((size[1] - 1 - i) * size[2] + j];
+                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + (size[1] - 1 - i)  * size[2] + j];
+                        }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1]  > id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Ro[element(size[0] - 1, size[1] - 1, i)] = b->XZ1YZ1[i - 1];
-                    }
+                    for(int i = size[1] - 2; i <= size[1] - 1; ++i)
+                        for(int j = 0; j < size[2]; ++j) {
+                            Ro[element(size[0] - 1, i, j)] += b->YZ1[(size[1] - i + 2) * size[2] + j];
+                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + (size[1] - i + 2) * size[2] + j];
+                        }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  > id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, size[1] - 1, size[2] - 1)] = b->XZ1XY1[i - 1];
-                    }
+                    for(int i = size[1] - 2; i <= size[1] - 1; ++i)
+                        for(int j = 0; j < size[0]; ++j) {
+                            Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - i + 2) * size[0] + j];
+                            Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - i + 2) * size[0] + j];
+                        }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  < id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, 0, size[2] - 1)] = b->XZ2XY1[i - 1];
-                    }
+                    for(int i = 0; i <= 1; ++i)
+                        for(int i = size[1] - 2; i <= size[1] - 1; ++i)
+                            for(int j = 0; j < size[0]; ++j) {
+                                Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - 1 - i) * size[0] + j];
+                                Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - 1 - i) * size[0] + j];
+                            }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  > id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, size[1] - 1, 0)] = b->XZ1XY2[i - 1];
-                    }
+                    for(int i = size[1] - 2; i <= size[1] - 1; ++i)
+                        for(int j = 0; j < size[0]; ++j) {
+                            Ro[element(j, i, 0)] += b->XY2[(size[1] - i + 2) * size[0] + j];
+                            Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - i + 2) * size[0] + j];
+                        }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  < id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Ro[element(i, 0, 0)] = b->XZ2XY2[i - 1];
-                    }
+                    for(int i = 0; i <= 1; ++i)
+                       for(int j = 0; j < size[0]; ++j) {
+                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 1 - i) * size[0] + j];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 1 - i) * size[0] + j];
+                       }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(size[0] - 1, i, size[2] - 1)] = b->XY1YZ1[i - 1];
-                    }
+                    for(int i = 0; i < size[1]; ++i)
+                       for(int j = size[0] - 2; j <= size[0] - 1; ++j) {
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[i * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + i * size[0] + (j - size[0] + 2)];
+                       }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(size[0] - 1, i, 0)] = b->XY1YZ2[i - 1];
-                    }
+                    for(int i = 0; i < size[1]; ++i)
+                       for(int j = size[0] - 2; j <= size[0] - 1; ++j) {
+                           Ro[element(j, i, 0)] += b->XY2[i * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + i * size[0] + (j - size[0] + 2)];
+                       }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(0, i, size[2] - 1)] = b->XY2YZ1[i - 1];
-                    }
+                    for(int i = 0; i < size[1]; ++i)
+                       for(int j = 0; j <= 1; ++j) {
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[i * size[0] + (size[0] - 1 - j)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + i * size[0] + (size[0] - 1 - j)];
+                       }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Ro[element(0, i, 0)] = b->XY2YZ2[i - 1];
-                    }
+                    for(int i = 0; i < size[1]; ++i)
+                       for(int j = 0; j <= 1; ++j) {
+                           Ro[element(j, i, 0)] += b->XY2[i * size[0] + (size[0] - 1 - j)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + i * size[0] + (size[0] - 1 - j)];
+                       }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] < id[1] &&
                         bid[2] < id[2]) {
-                     Ro[element(0, 0, 0)] = b->XZ2XY2YZ2;
+                    for(int i = 0; i <= 1; ++i)
+                       for(int j = 0; j <= 1; ++j) {
+                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
+                       }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] < id[1] &&
                         bid[2] < id[2]) {
-                     Ro[element(size[0] - 1, 0, 0)] = b->XZ2XY2YZ1;
+                    for(int i = 0; i <= 1; ++i) //y
+                       for(int j = size[0] - 2; j <= size[0] - 1; ++j) { //x
+                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 2 + i) * size[0] + (size[0] - 2 - j)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 - j)];
+                       }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] > id[1] &&
                         bid[2] < id[2]) {
-                     Ro[element(0, size[1] - 1, 0)] = b->XZ1XY2YZ2;
+                    for(int i = size[1] - 2; i <= size[1] - 1; ++i) //y
+                       for(int j = 0; j <= 1; ++j) { //x
+                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
+                       }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] < id[1] &&
                         bid[2] > id[2]) {
-                     Ro[element(0, 0, size[2] - 1)] = b->XZ2XY1YZ2;
+                    for(int i = 0; i <= 1; ++i)
+                       for(int j = 0; j <= 1; ++j) {
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 - j)];
+                       }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] > id[1] &&
                         bid[2] < id[2]) {
-                     Ro[element(size[0] - 1, size[1] - 1, 0)] = b->XZ1XY2YZ1;
+                    for(int i = size[1] - 2; i <= size[1] - 1; ++i) //y
+                       for(int j = size[0] - 2; j <= size[0] - 1; ++j) { //x
+                           Ro[element(j, i, 0)] += b->XY2[(j - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (j - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                       }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] < id[1] &&
                         bid[2] > id[2]) {
-                     Ro[element(size[0] - 1, 0, size[2] - 1)] = b->XZ2XY1YZ1;
+                    for(int i = 0; i <= 1; ++i)
+                       for(int j = size[0] - 2; j <= size[0] - 1; ++j) {
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - 2 + i) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (j - size[0] + 2)];
+                       }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] > id[1] &&
                         bid[2] > id[2]) {
-                     Ro[element(0, size[1] - 1, size[2] - 1)] = b->XZ1XY1YZ2;
+                    for(int i = 0; i <= 1; ++i)
+                       for(int j = size[0] - 2; j <= size[0] - 1; ++j) {
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - 2 + i) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (j - size[0] + 2)];
+                       }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] > id[1] &&
                         bid[2] > id[2]) {
-                     Ro[element(size[0] - 1, size[1] - 1, size[2] - 1)] = b->XZ1XY1YZ1;
+                    for(int i = size[1] - 2; i <= size[1] - 1; ++i) //y
+                       for(int j = size[0] - 2; j <= size[0] - 1; ++j) { //x
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[(j - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (j - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                       }
                 }
             }
         }
