@@ -750,50 +750,86 @@ class Mesh {
 
         }
 
-        FiBoundary** getBoundary() {
-            FiBoundary** result = new FiBoundary*[6];
-            std::cout << "Heyho " << size[0] << " " << size[1] << std::endl;
-            FiBoundary* xy1 = new FiBoundary(size[0] * size[1]);
-            FiBoundary* xy2 = new FiBoundary(size[0] * size[1]);
-            FiBoundary* xz1 = new FiBoundary(size[0] * size[2]);
-            FiBoundary* xz2 = new FiBoundary(size[0] * size[2]);
-            FiBoundary* yz1 = new FiBoundary(size[1] * size[2]);
-            FiBoundary* yz2 = new FiBoundary(size[1] * size[2]);
+        FiBoundary* getFiBoundary() {
+            FiBoundary* result = new FiBoundary(size[0] - 2, size[1] - 2, size[2] - 2);
 
             for(int i = 1; i < size[0] - 1; ++i)
                 for(int j = 1; j < size[1] - 1; ++j)  {
-                    xy1->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, 1)];
-                    xy1->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, j, 1)];
-
-                    xy2->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, size[2] - 2)];
-                    xy2->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, j, size[2] - 2)];
+                    result->XY1[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, 1)];
+                    result->XY2[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, size[2] - 2)];
                 }
 
             for(int i = 1; i < size[0] - 1; ++i)
                 for(int j = 1; j < size[2] - 1; ++j) {
-                    xz1->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, 1, j)];
-                    xz1->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, 1, j)];
-
-                    xz2->Fi[(j - 1) * size[0] + (i - 1)] = Fi[element(i, size[1] - 2, j)];
-                    xz2->Ro[(j - 1) * size[0] + (i - 1)] = Ro[element(i, size[1] - 2, j)];
+                    result->XZ1[(j - 1) * size[0] + (i - 1)] = Fi[element(i, 1, j)];
+                    result->XZ2[(j - 1) * size[0] + (i - 1)] = Fi[element(i, size[1] - 2, j)];
                 }
 
             for(int i = 1; i < size[1] - 1; ++i)
                 for(int j = 1; j < size[2] - 1; ++j) {
-                    yz1->Fi[(j - 1) * size[1] + (i - 1)] = Fi[element(1, i, j)];
-                    yz1->Ro[(j - 1) * size[1] + (i - 1)] = Ro[element(1, i, j)];
-
-                    yz2->Fi[(j - 1) * size[1] + (i - 1)] = Fi[element(size[0] - 2, i, j)];
-                    yz2->Ro[(j - 1) * size[1] + (i - 1)] = Ro[element(size[0] - 2, i, j)];
+                    result->YZ1[(j - 1) * size[1] + (i - 1)] = Fi[element(1, i, j)];
+                    result->YZ2[(j - 1) * size[1] + (i - 1)] = Fi[element(size[0] - 2, i, j)];
                 }
 
-            result[0] = xy1;
-            result[1] = xy2;
-            result[2] = xz1;
-            result[3] = xz2;
-            result[4] = yz1;
-            result[5] = yz2;
+            for(int i = 1; i < size[0] - 1; ++i) {
+                result->XZ1XY1[i] = Fi[element(i, 1, 1)];
+                result->XZ1XY2[i] = Fi[element(i, 1, size[2] - 2)];
+                result->XZ2XY1[i] = Fi[element(i, size[1] - 2, 1)];
+                result->XZ2XY2[i] = Fi[element(i, size[1] - 2, size[2] - 2)];
+            }
 
+            for(int i = 1; i < size[1] - 1; ++i) {
+                result->XY1YZ1[i] = Fi[element(1, i, 1)];
+                result->XY1YZ2[i] = Fi[element(size[0] - 2, i, 1)];
+                result->XY2YZ1[i] = Fi[element(1, i, size[2] - 2)];
+                result->XY2YZ2[i] = Fi[element(size[0] - 2, i, size[2] - 2)];
+            }
+
+            for(int i = 1; i < size[2] - 1; ++i) {
+                result->XZ1YZ1[i] = Fi[element(1, 1, i)];
+                result->XZ1YZ2[i] = Fi[element(size[0] - 2, 1, i)];
+                result->XZ2YZ1[i] = Fi[element(1, size[1] - 2, i)];
+                result->XZ2YZ2[i] = Fi[element(size[0] - 2, size[1] - 2, i)];
+            }
+
+            result->XZ1XY1YZ1 = Fi[element(1, 1, 1)];
+            result->XZ1XY2YZ1 = Fi[element(1, 1, size[2] - 2)];
+            result->XZ2XZ1YZ1 = Fi[element(1, size[1] - 2, 1)];
+            result->XZ2XY2YZ1 = Fi[element(1, size[1] - 2, size[2] - 2)];
+            result->XZ1XY1YZ2 = Fi[element(size[0] - 2, 1, 1)];
+            result->XZ1XY2YZ2 = Fi[element(size[0] - 2, 1, size[2] - 2)];
+            result->XZ2XZ1YZ2 = Fi[element(size[0] - 2, size[1] - 2, 1)];
+            result->XZ2XY2YZ2 = Fi[element(size[0] - 2, size[1] - 2, size[2] - 2)];
+
+            return result;
+        }
+
+        FiBoundary* getRoBoundary() {
+            FiBoundary* result = new FiBoundary(size[0], size[1], size[2]);
+
+            for(int i = 0; i < size[0]; ++i)
+                for(int j = 0; j < size[1]; ++j)  {
+                    result->XY1[j * size[0] + i] = Fi[element(i, j, 1)];
+                    result->XY1[(size[0] * size[1]) + j * size[0] + i] = Fi[element(i, j, 0)];
+                    result->XY2[j * size[0] + i] = Fi[element(i, j, size[2] - 2)];
+                    result->XY2[(size[0] * size[1]) + j * size[0] + i] = Fi[element(i, j, size[2] - 1)];
+                }
+
+            for(int i = 0; i < size[0]; ++i)
+                for(int j = 0; j < size[2]; ++j) {
+                    result->XZ1[j * size[0] + i] = Fi[element(i, 1, j)];
+                    result->XZ1[(size[0] * size[2]) + j * size[0] + i] = Fi[element(i, 0, j)];
+                    result->XZ2[j * size[0] + i] = Fi[element(i, size[1] - 2, j)];
+                    result->XZ2[(size[0] * size[2]) + j * size[0] + i] = Fi[element(i, size[1] - 1, j)];
+                }
+
+            for(int i = 0; i < size[1]; ++i)
+                for(int j = 0; j < size[2]; ++j) {
+                    result->YZ1[j * size[1] + i] = Fi[element(1, i, j)];
+                    result->YZ1[(size[1] * size[2]) + j * size[1] + i] = Fi[element(0, i, j)];
+                    result->YZ2[j * size[1] + i] = Fi[element(size[0] - 2, i, j)];
+                    result->YZ2[(size[1] * size[2]) + j * size[1] + i] = Fi[element(size[0] - 1, i, j)];
+                }
             return result;
         }
 
