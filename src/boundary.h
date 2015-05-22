@@ -1,6 +1,9 @@
 #ifndef BOUNDARY
 #define BOUNDARY
 
+#include <vector>
+#include "particle.h"
+
 struct FiBoundary {
     double* XY1;
     double* XY2;
@@ -24,15 +27,15 @@ struct FiBoundary {
 
     double XZ1XY1YZ1;
     double XZ1XY2YZ1;
-    double XZ2XZ1YZ1;
+    double XZ2XY1YZ1;
     double XZ2XY2YZ1;
     double XZ1XY1YZ2;
     double XZ1XY2YZ2;
-    double XZ2XZ1YZ2;
+    double XZ2XY1YZ2;
     double XZ2XY2YZ2;
 
-    int _size[3];
-    int64_t id[3];
+    int size[3];
+    uint64_t id[3];
 
     ~FiBoundary() {
         delete[] XY1;
@@ -106,11 +109,11 @@ struct FiBoundary {
 
         result->XZ1XY1YZ1 = XZ1XY1YZ1;
         result->XZ1XY2YZ1 = XZ1XY2YZ1;
-        result->XZ2XZ1YZ1 = XZ2XZ1YZ1;
+        result->XZ2XY1YZ1 = XZ2XY1YZ1;
         result->XZ2XY2YZ1 = XZ2XY2YZ1;
         result->XZ1XY1YZ2 = XZ1XY1YZ2;
         result->XZ1XY2YZ2 = XZ1XY2YZ2;
-        result->XZ2XZ1YZ2 = XZ2XZ1YZ2;
+        result->XZ2XY1YZ2 = XZ2XY1YZ2;
         result->XZ2XY2YZ2 = XZ2XY2YZ2;
 
         return result;
@@ -147,11 +150,11 @@ struct FiBoundary {
 
         a << XZ1XY1YZ1;
         a << XZ1XY2YZ1;
-        a << XZ2XZ1YZ1;
+        a << XZ2XY1YZ1;
         a << XZ2XY2YZ1;
         a << XZ1XY1YZ2;
         a << XZ1XY2YZ2;
-        a << XZ2XZ1YZ2;
+        a << XZ2XY1YZ2;
         a << XZ2XY2YZ2;
     }
 
@@ -206,11 +209,11 @@ struct FiBoundary {
 
         a >> r->XZ1XY1YZ1;
         a >> r->XZ1XY2YZ1;
-        a >> r->XZ2XZ1YZ1;
+        a >> r->XZ2XY1YZ1;
         a >> r->XZ2XY2YZ1;
         a >> r->XZ1XY1YZ2;
         a >> r->XZ1XY2YZ2;
-        a >> r->XZ2XZ1YZ2;
+        a >> r->XZ2XY1YZ2;
         a >> r->XZ2XY2YZ2;
 
         return r;
@@ -225,8 +228,8 @@ struct RoBoundary {
     double* YZ1;
     double* YZ2;
 
-    int _size[3];
-    int64_t id[3];
+    int size[3];
+    uint64_t id[3];
 
     ~RoBoundary() {
         delete[] XY1;
@@ -312,5 +315,233 @@ struct RoBoundary {
     }
 };
 
+
+struct ParticleBoundary {
+    vector<Particle*> XY1;
+    vector<Particle*> XY2;
+    vector<Particle*> XZ1;
+    vector<Particle*> XZ2;
+    vector<Particle*> YZ1;
+    vector<Particle*> YZ2;
+
+    vector<Particle*> XZ1XY1;
+    vector<Particle*> XZ1XY2;
+    vector<Particle*> XZ1YZ1;
+    vector<Particle*> XZ1YZ2;
+    vector<Particle*> XZ2XY1;
+    vector<Particle*> XZ2XY2;
+    vector<Particle*> XZ2YZ1;
+    vector<Particle*> XZ2YZ2;
+    vector<Particle*> XY1YZ1;
+    vector<Particle*> XY1YZ2;
+    vector<Particle*> XY2YZ1;
+    vector<Particle*> XY2YZ2;
+
+    vector<Particle*> XZ1XY1YZ1;
+    vector<Particle*> XZ1XY2YZ1;
+    vector<Particle*> XZ2XY1YZ1;
+    vector<Particle*> XZ2XY2YZ1;
+    vector<Particle*> XZ1XY1YZ2;
+    vector<Particle*> XZ1XY2YZ2;
+    vector<Particle*> XZ2XY1YZ2;
+    vector<Particle*> XZ2XY2YZ2;
+
+    uint64_t id[3];
+
+    ~ParticleBoundary() {
+        for(auto i : XY1){ delete i; }
+        for(auto i : XY2){ delete i; }
+        for(auto i : XZ1){ delete i; }
+        for(auto i : XZ2){ delete i; }
+        for(auto i : YZ1){ delete i; }
+        for(auto i : YZ2){ delete i; }
+
+        for(auto i : XZ1XY1){ delete i; }
+        for(auto i : XZ1XY2){ delete i; }
+        for(auto i : XZ1YZ1){ delete i; }
+        for(auto i : XZ1YZ2){ delete i; }
+        for(auto i : XZ2XY1){ delete i; }
+        for(auto i : XZ2XY2){ delete i; }
+        for(auto i : XZ2YZ1){ delete i; }
+        for(auto i : XZ2YZ2){ delete i; }
+        for(auto i : XY1YZ1){ delete i; }
+        for(auto i : XY1YZ2){ delete i; }
+        for(auto i : XY2YZ1){ delete i; }
+        for(auto i : XY2YZ2){ delete i; }
+
+        for(auto i : XZ1XY1YZ1){ delete i; }
+        for(auto i : XZ1XY2YZ1){ delete i; }
+        for(auto i : XZ2XY1YZ1){ delete i; }
+        for(auto i : XZ2XY2YZ1){ delete i; }
+        for(auto i : XZ1XY1YZ2){ delete i; }
+        for(auto i : XZ1XY2YZ2){ delete i; }
+        for(auto i : XZ2XY1YZ2){ delete i; }
+        for(auto i : XZ2XY2YZ2){ delete i; }
+    }
+
+    ParticleBoundary() {
+    }
+
+    ParticleBoundary* copy() {
+        ParticleBoundary* result = new ParticleBoundary();
+        for(auto i : XY1){ result->XY1.push_back(i->copy()); }
+        for(auto i : XY2){ result->XY2.push_back(i->copy()); }
+        for(auto i : XZ1){ result->XZ1.push_back(i->copy()); }
+        for(auto i : XZ2){ result->XZ2.push_back(i->copy()); }
+        for(auto i : YZ1){ result->YZ1.push_back(i->copy()); }
+        for(auto i : YZ2){ result->YZ2.push_back(i->copy()); }
+
+        for(auto i : XZ1XY1){ result->XZ1XY1.push_back(i->copy()); }
+        for(auto i : XZ1XY2){ result->XZ1XY2.push_back(i->copy()); }
+        for(auto i : XZ1YZ1){ result->XZ1YZ1.push_back(i->copy()); }
+        for(auto i : XZ1YZ2){ result->XZ1YZ2.push_back(i->copy()); }
+        for(auto i : XZ2XY1){ result->XZ2XY1.push_back(i->copy()); }
+        for(auto i : XZ2XY2){ result->XZ2XY2.push_back(i->copy()); }
+        for(auto i : XZ2YZ1){ result->XZ2YZ1.push_back(i->copy()); }
+        for(auto i : XZ2YZ2){ result->XZ2YZ2.push_back(i->copy()); }
+        for(auto i : XY1YZ1){ result->XY1YZ1.push_back(i->copy()); }
+        for(auto i : XY1YZ2){ result->XY1YZ2.push_back(i->copy()); }
+        for(auto i : XY2YZ1){ result->XY2YZ1.push_back(i->copy()); }
+        for(auto i : XY2YZ2){ result->XY2YZ2.push_back(i->copy()); }
+
+        for(auto i : XZ1XY1YZ1){ result->XZ1XY1YZ1.push_back(i->copy()); }
+        for(auto i : XZ1XY2YZ1){ result->XZ1XY2YZ1.push_back(i->copy()); }
+        for(auto i : XZ2XY1YZ1){ result->XZ2XY1YZ1.push_back(i->copy()); }
+        for(auto i : XZ2XY2YZ1){ result->XZ2XY2YZ1.push_back(i->copy()); }
+        for(auto i : XZ1XY1YZ2){ result->XZ1XY1YZ2.push_back(i->copy()); }
+        for(auto i : XZ1XY2YZ2){ result->XZ1XY2YZ2.push_back(i->copy()); }
+        for(auto i : XZ2XY1YZ2){ result->XZ2XY1YZ2.push_back(i->copy()); }
+        for(auto i : XZ2XY2YZ2){ result->XZ2XY2YZ2.push_back(i->copy()); }
+
+        return result;
+    }
+
+    void serialize(ts::Arc* arc) {
+        ts::Arc& a = *arc;
+        a << id[0] << id[1] << id[2];
+
+        a << XY1.size();
+        for(auto i : XY1){ i->serialize(arc); }
+        a << XY2.size();
+        for(auto i : XY2){ i->serialize(arc); }
+        a << XZ1.size();
+        for(auto i : XZ1){ i->serialize(arc); }
+        a << XZ2.size();
+        for(auto i : XZ2){ i->serialize(arc); }
+        a << YZ1.size();
+        for(auto i : YZ1){ i->serialize(arc); }
+        a << YZ2.size();
+        for(auto i : YZ2){ i->serialize(arc); }
+
+        a << XZ1XY1.size();
+        for(auto i : XZ1XY1){ i->serialize(arc); }
+        a << XZ1XY2.size();
+        for(auto i : XZ1XY2){ i->serialize(arc); }
+        a << XZ1YZ1.size();
+        for(auto i : XZ1YZ1){ i->serialize(arc); }
+        a << XZ1YZ2.size();
+        for(auto i : XZ1YZ2){ i->serialize(arc); }
+        a << XZ2XY1.size();
+        for(auto i : XZ2XY1){ i->serialize(arc); }
+        a << XZ2XY2.size();
+        for(auto i : XZ2XY2){ i->serialize(arc); }
+        a << XZ2YZ1.size();
+        for(auto i : XZ2YZ1){ i->serialize(arc); }
+        a << XZ2YZ2.size();
+        for(auto i : XZ2YZ2){ i->serialize(arc); }
+        a << XY1YZ1.size();
+        for(auto i : XY1YZ1){ i->serialize(arc); }
+        a << XY1YZ2.size();
+        for(auto i : XY1YZ2){ i->serialize(arc); }
+        a << XY2YZ1.size();
+        for(auto i : XY2YZ1){ i->serialize(arc); }
+        a << XY2YZ2.size();
+        for(auto i : XY2YZ2){ i->serialize(arc); }
+
+        a << XZ1XY1YZ1.size();
+        for(auto i : XZ1XY1YZ1){ i->serialize(arc); }
+        a << XZ1XY2YZ1.size();
+        for(auto i : XZ1XY2YZ1){ i->serialize(arc); }
+        a << XZ2XY1YZ1.size();
+        for(auto i : XZ2XY1YZ1){ i->serialize(arc); }
+        a << XZ2XY2YZ1.size();
+        for(auto i : XZ2XY2YZ1){ i->serialize(arc); }
+        a << XZ1XY1YZ2.size();
+        for(auto i : XZ1XY1YZ2){ i->serialize(arc); }
+        a << XZ1XY2YZ2.size();
+        for(auto i : XZ1XY2YZ2){ i->serialize(arc); }
+        a << XZ2XY1YZ2.size();
+        for(auto i : XZ2XY1YZ2){ i->serialize(arc); }
+        a << XZ2XY2YZ2.size();
+        for(auto i : XZ2XY2YZ2){ i->serialize(arc); }
+    }
+
+    static ParticleBoundary* deserialize(ts::Arc* arc) {
+        ts::Arc& a = *arc;
+        size_type s;
+
+        ParticleBoundary* r = new ParticleBoundary(size[0], size[1], size[2]);
+        a >> r->id[0];
+        a >> r->id[1];
+        a >> r->id[2];
+
+        a >> s;
+        for(int i = 0; i < s; ++i){ XY1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XY2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ YZ2.push_back(Particle::deserialize(arc)); }
+
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1XY1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1XY2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1YZ2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2XY1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2XY2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2YZ2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XY1YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XY1YZ2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XY2YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XY2YZ2.push_back(Particle::deserialize(arc)); }
+
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1XY1YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1XY2YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2XY1YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2XY2YZ1.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1XY1YZ2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ1XY2YZ2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2XY1YZ2.push_back(Particle::deserialize(arc)); }
+        a >> s;
+        for(int i = 0; i < s; ++i){ XZ2XY2YZ2.push_back(Particle::deserialize(arc)); }
+
+        return r;
+    }
+};
 #endif // BOUNDARY
 

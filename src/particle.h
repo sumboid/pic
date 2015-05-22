@@ -28,6 +28,14 @@ public:
     inline void vy(double __vy) { _vy = __vy; }
     inline void vz(double __vz) { _vz = __vz; }
 
+    inline Particle* copy() {
+        Particle* r = new Particle(_x, _y, _z, _m);
+        r->vx(_vx);
+        r->vy(_vy);
+        r->vz(_vz);
+        return r;
+    }
+
     void serialize(ts::Arc* arc) {
       ts::Arc& a = *arc;
       a << _x << _y << _z << _vx << _vy << _vz << _m;

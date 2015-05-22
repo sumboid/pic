@@ -91,10 +91,16 @@ class Mesh {
         ~Mesh() {
             delete[] Fi;
             delete[] Ro;
+            delete[] Fx;
+            delete[] Fy;
+            delete[] Fz;
         }
 
         inline Mesh* copy() {
            Mesh* c = new Mesh(size[0] - 2, size[1] - 2, size[2] - 2);
+           c->id[0] = id[0];
+           c->id[1] = id[1];
+           c->id[2] = id[2];
            c->setSides(side[0],
                          side[1],
                          side[2],
@@ -111,6 +117,12 @@ class Mesh {
 
         inline void addParticle(Particle* p) {
             ps.push_back(p);
+        }
+
+        inline void setID(uint64_t x, uint64_t y, uint64_t z) {
+            id[0] = x;
+            id[1] = y;
+            id[2] = z;
         }
 
         inline void sethxyz(double _hx, double _hy, double _hz) {
@@ -187,7 +199,7 @@ class Mesh {
             return size[2] - 2;
         }
 
-        inline setBoundaryFi(std::vector<FiBoundary*>& bs) {
+        inline void setBoundaryFi(std::vector<FiBoundary*>& bs) {
             for(auto b : bs) {
                 int64_t bid[3];
                 bid[0] = b->id[0];
@@ -199,7 +211,7 @@ class Mesh {
                    bid[2]  > id[2]) {
                     for(int i = 1; i < size[0] - 1; i++)
                         for(int j = 1; j < size[1] - 1; j++) {
-                            Fi[element(i, j, size[2] - 1)] = b->XY1[(j - 1) * size[0] + (i - 1)];
+                            Fi[element(i, j, size[2] - 1)] = b->XY1[(j - 1) * (size[0] - 2) + (i - 1)];
                         }
                 }
 
@@ -208,7 +220,7 @@ class Mesh {
                         bid[2]  < id[2]) {
                     for(int i = 1; i < size[0] - 1; i++)
                         for(int j = 1; j < size[1] - 1; j++) {
-                            Fi[element(i, j, 0)] = b->XY2[(j - 1) * size[0] + (i - 1)];
+                            Fi[element(i, j, 0)] = b->XY2[(j - 1) * (size[0] - 2) + (i - 1)];
                         }
                 }
 
@@ -217,7 +229,7 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = 1; i < size[0] - 1; i++)
                         for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(i, size[1] - 1, j)] = b->XZ1[(j - 1) * size[0] + (i - 1)];
+                            Fi[element(i, size[1] - 1, j)] = b->XZ1[(j - 1) * (size[0] - 2) + (i - 1)];
                         }
                 }
 
@@ -226,7 +238,7 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = 1; i < size[0] - 1; i++)
                         for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(i, 0, j)] = b->XZ2[(j - 1) * size[0] + (i - 1)];
+                            Fi[element(i, 0, j)] = b->XZ2[(j - 1) * (size[0] - 2) + (i - 1)];
                         }
                 }
 
@@ -235,7 +247,7 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = 1; i < size[1] - 1; i++)
                         for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(size[0] - 1, i, j)] = b->XY1[(j - 1) * size[1] + (i - 1)];
+                            Fi[element(size[0] - 1, i, j)] = b->YZ1[(j - 1) * (size[1] - 2) + (i - 1)];
                         }
                 }
 
@@ -244,7 +256,7 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = 1; i < size[1] - 1; i++)
                         for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(0, i, j)] = b->XY2[(j - 1) * size[1] + (i - 1)];
+                            Fi[element(0, i, j)] = b->YZ2[(j - 1) * (size[1] - 2) + (i - 1)];
                         }
                 }
 
@@ -394,7 +406,7 @@ class Mesh {
             }
         }
 
-        inline setBoundaryRo(std::vector<RoBoundary*>& bs) {
+        inline void setBoundaryRo(std::vector<RoBoundary*>& bs) {
             for(auto b : bs) {
                 int64_t bid[3];
                 bid[0] = b->id[0];
@@ -416,7 +428,7 @@ class Mesh {
                         bid[2]  < id[2]) {
                     for(int i = 0; i < size[0]; i++)
                         for(int j = 0; j < size[1]; j++) {
-                            Ro[element(i, j, 0)] += b->XY2[j * size[0]];
+                            Ro[element(i, j, 0)] += b->XY2[j * size[0] + i];
                             Ro[element(i, j, 1)] += b->XY2[(size[0] * size[1]) + j * size[0] + i];
                         }
                 }
@@ -467,8 +479,8 @@ class Mesh {
 
                     for(int i = 0; i <= 1; ++i)
                         for(int j = 0; j < size[2]; ++j) {
-                            Ro[element(0, i, j)] += b->YZ2[i * size[2] + j];
-                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + i * size[2] + j];
+                            Ro[element(0, i, j)] += b->YZ2[j * size[1] + (size[1] - 2 + i)];
+                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + j * size[1] + (size[1] - 2 + i)];
                         }
                 }
 
@@ -477,8 +489,8 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = size[1] - 2; i <= size[1] - 1; ++i)
                         for(int j = 0; j < size[2]; ++j) {
-                            Ro[element(0, i, j)] += b->YZ2[(size[1] - i + 2) * size[2] + j];
-                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + (size[1] - i + 2) * size[2] + j];
+                            Ro[element(0, i, j)] += b->YZ2[j * size[1] + (i - size[1] + 2)];
+                            Ro[element(1, i, j)] += b->YZ2[(size[1] * size[2]) + j * size[1] + (i - size[1] + 2)];
                         }
                 }
 
@@ -487,8 +499,8 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = 0; i <= 1; ++i)
                         for(int j = 0; j < size[2]; ++j) {
-                            Ro[element(size[0] - 1, i, j)] += b->YZ1[((size[1] - 1 - i) * size[2] + j];
-                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + (size[1] - 1 - i)  * size[2] + j];
+                            Ro[element(size[0] - 1, i, j)] += b->YZ1[j * size[1] + (size[1] - 2 + i)];
+                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + j * size[1] + (size[1] - 2 + i)];
                         }
                 }
 
@@ -497,8 +509,8 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = size[1] - 2; i <= size[1] - 1; ++i)
                         for(int j = 0; j < size[2]; ++j) {
-                            Ro[element(size[0] - 1, i, j)] += b->YZ1[(size[1] - i + 2) * size[2] + j];
-                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + (size[1] - i + 2) * size[2] + j];
+                            Ro[element(size[0] - 1, i, j)] += b->YZ1[j * size[1] + (i - size[1] + 2)];
+                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + j * size[1] + (i - size[1] + 2)];
                         }
                 }
 
@@ -507,8 +519,8 @@ class Mesh {
                         bid[2]  > id[2]) {
                     for(int i = size[1] - 2; i <= size[1] - 1; ++i)
                         for(int j = 0; j < size[0]; ++j) {
-                            Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - i + 2) * size[0] + j];
-                            Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - i + 2) * size[0] + j];
+                            Ro[element(j, i, size[2] - 1)] += b->XY1[(i - size[1] + 2) * size[0] + j];
+                            Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (i - size[1] + 2) * size[0] + j];
                         }
                 }
 
@@ -518,8 +530,8 @@ class Mesh {
                     for(int i = 0; i <= 1; ++i)
                         for(int i = size[1] - 2; i <= size[1] - 1; ++i)
                             for(int j = 0; j < size[0]; ++j) {
-                                Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - 1 - i) * size[0] + j];
-                                Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - 1 - i) * size[0] + j];
+                                Ro[element(j, i, size[2] - 1)] += b->XY1[(i - size[1] + 2) * size[0] + j];
+                                Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (i - size[1] + 2) * size[0] + j];
                             }
                 }
 
@@ -528,8 +540,8 @@ class Mesh {
                         bid[2]  < id[2]) {
                     for(int i = size[1] - 2; i <= size[1] - 1; ++i)
                         for(int j = 0; j < size[0]; ++j) {
-                            Ro[element(j, i, 0)] += b->XY2[(size[1] - i + 2) * size[0] + j];
-                            Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - i + 2) * size[0] + j];
+                            Ro[element(j, i, 0)] += b->XY2[(i - size[1] + 2) * size[0] + j];
+                            Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (i - size[1] + 2) * size[0] + j];
                         }
                 }
 
@@ -538,8 +550,8 @@ class Mesh {
                         bid[2]  < id[2]) {
                     for(int i = 0; i <= 1; ++i)
                        for(int j = 0; j < size[0]; ++j) {
-                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 1 - i) * size[0] + j];
-                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 1 - i) * size[0] + j];
+                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 2 + i) * size[0] + j];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + j];
                        }
                 }
 
@@ -568,8 +580,8 @@ class Mesh {
                         bid[2]  > id[2]) {
                     for(int i = 0; i < size[1]; ++i)
                        for(int j = 0; j <= 1; ++j) {
-                           Ro[element(j, i, size[2] - 1)] += b->XY1[i * size[0] + (size[0] - 1 - j)];
-                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + i * size[0] + (size[0] - 1 - j)];
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[i * size[0] + (size[0] - 2 + j)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + i * size[0] + (size[0] - 2 + j)];
                        }
                 }
 
@@ -578,8 +590,8 @@ class Mesh {
                         bid[2]  < id[2]) {
                     for(int i = 0; i < size[1]; ++i)
                        for(int j = 0; j <= 1; ++j) {
-                           Ro[element(j, i, 0)] += b->XY2[i * size[0] + (size[0] - 1 - j)];
-                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + i * size[0] + (size[0] - 1 - j)];
+                           Ro[element(j, i, 0)] += b->XY2[i * size[0] + (size[0] - 2 + j)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + i * size[0] + (size[0] - 2 + j)];
                        }
                 }
 
@@ -598,8 +610,8 @@ class Mesh {
                         bid[2] < id[2]) {
                     for(int i = 0; i <= 1; ++i) //y
                        for(int j = size[0] - 2; j <= size[0] - 1; ++j) { //x
-                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 2 + i) * size[0] + (size[0] - 2 - j)];
-                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 - j)];
+                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 2 + i) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (j - size[0] + 2)];
                        }
                 }
 
@@ -608,8 +620,8 @@ class Mesh {
                         bid[2] < id[2]) {
                     for(int i = size[1] - 2; i <= size[1] - 1; ++i) //y
                        for(int j = 0; j <= 1; ++j) { //x
-                           Ro[element(j, i, 0)] += b->XY2[(size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
-                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
+                           Ro[element(j, i, 0)] += b->XY2[(i - size[1] + 2) * size[0] + (size[0] - 2 + j)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (i - size[1] + 2) * size[0] + (size[0] - 2 + j)];
                        }
                 }
 
@@ -619,7 +631,7 @@ class Mesh {
                     for(int i = 0; i <= 1; ++i)
                        for(int j = 0; j <= 1; ++j) {
                            Ro[element(j, i, size[2] - 1)] += b->XY1[(size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
-                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 - j)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (size[1] - 2 + i) * size[0] + (size[0] - 2 + j)];
                        }
                 }
 
@@ -628,8 +640,8 @@ class Mesh {
                         bid[2] < id[2]) {
                     for(int i = size[1] - 2; i <= size[1] - 1; ++i) //y
                        for(int j = size[0] - 2; j <= size[0] - 1; ++j) { //x
-                           Ro[element(j, i, 0)] += b->XY2[(j - size[1] + 2) * size[0] + (j - size[0] + 2)];
-                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (j - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, 0)] += b->XY2[(i - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, 1)] += b->XY2[(size[1] * size[0]) + (i - size[1] + 2) * size[0] + (j - size[0] + 2)];
                        }
                 }
 
@@ -658,8 +670,8 @@ class Mesh {
                         bid[2] > id[2]) {
                     for(int i = size[1] - 2; i <= size[1] - 1; ++i) //y
                        for(int j = size[0] - 2; j <= size[0] - 1; ++j) { //x
-                           Ro[element(j, i, size[2] - 1)] += b->XY1[(j - size[1] + 2) * size[0] + (j - size[0] + 2)];
-                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (j - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, size[2] - 1)] += b->XY1[(i - size[1] + 2) * size[0] + (j - size[0] + 2)];
+                           Ro[element(j, i, size[2] - 2)] += b->XY1[(size[1] * size[0]) + (i - size[1] + 2) * size[0] + (j - size[0] + 2)];
                        }
                 }
             }
@@ -755,51 +767,55 @@ class Mesh {
 
             for(int i = 1; i < size[0] - 1; ++i)
                 for(int j = 1; j < size[1] - 1; ++j)  {
-                    result->XY1[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, 1)];
-                    result->XY2[(j - 1) * size[0] + (i - 1)] = Fi[element(i, j, size[2] - 2)];
+                    result->XY1[(j - 1) * (size[0] - 2) + (i - 1)] = Fi[element(i, j, 1)];
+                    result->XY2[(j - 1) * (size[0] - 2) + (i - 1)] = Fi[element(i, j, size[2] - 2)];
                 }
 
             for(int i = 1; i < size[0] - 1; ++i)
                 for(int j = 1; j < size[2] - 1; ++j) {
-                    result->XZ1[(j - 1) * size[0] + (i - 1)] = Fi[element(i, 1, j)];
-                    result->XZ2[(j - 1) * size[0] + (i - 1)] = Fi[element(i, size[1] - 2, j)];
+                    result->XZ1[(j - 1) * (size[0] - 2) + (i - 1)] = Fi[element(i, 1, j)];
+                    result->XZ2[(j - 1) * (size[0] - 2) + (i - 1)] = Fi[element(i, size[1] - 2, j)];
                 }
 
             for(int i = 1; i < size[1] - 1; ++i)
                 for(int j = 1; j < size[2] - 1; ++j) {
-                    result->YZ1[(j - 1) * size[1] + (i - 1)] = Fi[element(1, i, j)];
-                    result->YZ2[(j - 1) * size[1] + (i - 1)] = Fi[element(size[0] - 2, i, j)];
+                    result->YZ1[(j - 1) * (size[1] - 2) + (i - 1)] = Fi[element(1, i, j)];
+                    result->YZ2[(j - 1) * (size[1] - 2) + (i - 1)] = Fi[element(size[0] - 2, i, j)];
                 }
 
             for(int i = 1; i < size[0] - 1; ++i) {
-                result->XZ1XY1[i] = Fi[element(i, 1, 1)];
-                result->XZ1XY2[i] = Fi[element(i, 1, size[2] - 2)];
-                result->XZ2XY1[i] = Fi[element(i, size[1] - 2, 1)];
-                result->XZ2XY2[i] = Fi[element(i, size[1] - 2, size[2] - 2)];
+                result->XZ1XY1[i - 1] = Fi[element(i, 1, 1)];
+                result->XZ1XY2[i - 1] = Fi[element(i, 1, size[2] - 2)];
+                result->XZ2XY1[i - 1] = Fi[element(i, size[1] - 2, 1)];
+                result->XZ2XY2[i - 1] = Fi[element(i, size[1] - 2, size[2] - 2)];
             }
 
             for(int i = 1; i < size[1] - 1; ++i) {
-                result->XY1YZ1[i] = Fi[element(1, i, 1)];
-                result->XY1YZ2[i] = Fi[element(size[0] - 2, i, 1)];
-                result->XY2YZ1[i] = Fi[element(1, i, size[2] - 2)];
-                result->XY2YZ2[i] = Fi[element(size[0] - 2, i, size[2] - 2)];
+                result->XY1YZ1[i - 1] = Fi[element(1, i, 1)];
+                result->XY1YZ2[i - 1] = Fi[element(size[0] - 2, i, 1)];
+                result->XY2YZ1[i - 1] = Fi[element(1, i, size[2] - 2)];
+                result->XY2YZ2[i - 1] = Fi[element(size[0] - 2, i, size[2] - 2)];
             }
 
             for(int i = 1; i < size[2] - 1; ++i) {
-                result->XZ1YZ1[i] = Fi[element(1, 1, i)];
-                result->XZ1YZ2[i] = Fi[element(size[0] - 2, 1, i)];
-                result->XZ2YZ1[i] = Fi[element(1, size[1] - 2, i)];
-                result->XZ2YZ2[i] = Fi[element(size[0] - 2, size[1] - 2, i)];
+                result->XZ1YZ1[i - 1] = Fi[element(1, 1, i)];
+                result->XZ1YZ2[i - 1] = Fi[element(size[0] - 2, 1, i)];
+                result->XZ2YZ1[i - 1] = Fi[element(1, size[1] - 2, i)];
+                result->XZ2YZ2[i - 1] = Fi[element(size[0] - 2, size[1] - 2, i)];
             }
 
             result->XZ1XY1YZ1 = Fi[element(1, 1, 1)];
             result->XZ1XY2YZ1 = Fi[element(1, 1, size[2] - 2)];
-            result->XZ2XZ1YZ1 = Fi[element(1, size[1] - 2, 1)];
+            result->XZ2XY1YZ1 = Fi[element(1, size[1] - 2, 1)];
             result->XZ2XY2YZ1 = Fi[element(1, size[1] - 2, size[2] - 2)];
             result->XZ1XY1YZ2 = Fi[element(size[0] - 2, 1, 1)];
             result->XZ1XY2YZ2 = Fi[element(size[0] - 2, 1, size[2] - 2)];
-            result->XZ2XZ1YZ2 = Fi[element(size[0] - 2, size[1] - 2, 1)];
+            result->XZ2XY1YZ2 = Fi[element(size[0] - 2, size[1] - 2, 1)];
             result->XZ2XY2YZ2 = Fi[element(size[0] - 2, size[1] - 2, size[2] - 2)];
+
+            result->id[0] = id[0];
+            result->id[1] = id[1];
+            result->id[2] = id[2];
 
             return result;
         }
@@ -830,6 +846,10 @@ class Mesh {
                     result->YZ2[j * size[1] + i] = Fi[element(size[0] - 2, i, j)];
                     result->YZ2[(size[1] * size[2]) + j * size[1] + i] = Fi[element(size[0] - 1, i, j)];
                 }
+
+            result->id[0] = id[0];
+            result->id[1] = id[1];
+            result->id[2] = id[2];
             return result;
         }
 
