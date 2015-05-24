@@ -2,6 +2,7 @@
 #define BOUNDARY
 
 #include <vector>
+#include <math.h>
 #include "particle.h"
 
 struct FiBoundary {
@@ -317,34 +318,34 @@ struct RoBoundary {
 
 
 struct ParticleBoundary {
-    vector<Particle*> XY1;
-    vector<Particle*> XY2;
-    vector<Particle*> XZ1;
-    vector<Particle*> XZ2;
-    vector<Particle*> YZ1;
-    vector<Particle*> YZ2;
+    std::vector<Particle*> XY1;
+    std::vector<Particle*> XY2;
+    std::vector<Particle*> XZ1;
+    std::vector<Particle*> XZ2;
+    std::vector<Particle*> YZ1;
+    std::vector<Particle*> YZ2;
 
-    vector<Particle*> XZ1XY1;
-    vector<Particle*> XZ1XY2;
-    vector<Particle*> XZ1YZ1;
-    vector<Particle*> XZ1YZ2;
-    vector<Particle*> XZ2XY1;
-    vector<Particle*> XZ2XY2;
-    vector<Particle*> XZ2YZ1;
-    vector<Particle*> XZ2YZ2;
-    vector<Particle*> XY1YZ1;
-    vector<Particle*> XY1YZ2;
-    vector<Particle*> XY2YZ1;
-    vector<Particle*> XY2YZ2;
+    std::vector<Particle*> XZ1XY1;
+    std::vector<Particle*> XZ1XY2;
+    std::vector<Particle*> XZ1YZ1;
+    std::vector<Particle*> XZ1YZ2;
+    std::vector<Particle*> XZ2XY1;
+    std::vector<Particle*> XZ2XY2;
+    std::vector<Particle*> XZ2YZ1;
+    std::vector<Particle*> XZ2YZ2;
+    std::vector<Particle*> XY1YZ1;
+    std::vector<Particle*> XY1YZ2;
+    std::vector<Particle*> XY2YZ1;
+    std::vector<Particle*> XY2YZ2;
 
-    vector<Particle*> XZ1XY1YZ1;
-    vector<Particle*> XZ1XY2YZ1;
-    vector<Particle*> XZ2XY1YZ1;
-    vector<Particle*> XZ2XY2YZ1;
-    vector<Particle*> XZ1XY1YZ2;
-    vector<Particle*> XZ1XY2YZ2;
-    vector<Particle*> XZ2XY1YZ2;
-    vector<Particle*> XZ2XY2YZ2;
+    std::vector<Particle*> XZ1XY1YZ1;
+    std::vector<Particle*> XZ1XY2YZ1;
+    std::vector<Particle*> XZ2XY1YZ1;
+    std::vector<Particle*> XZ2XY2YZ1;
+    std::vector<Particle*> XZ1XY1YZ2;
+    std::vector<Particle*> XZ1XY2YZ2;
+    std::vector<Particle*> XZ2XY1YZ2;
+    std::vector<Particle*> XZ2XY2YZ2;
 
     uint64_t id[3];
 
@@ -478,67 +479,67 @@ struct ParticleBoundary {
 
     static ParticleBoundary* deserialize(ts::Arc* arc) {
         ts::Arc& a = *arc;
-        size_type s;
+        std::vector<Particle*>::size_type s;
 
-        ParticleBoundary* r = new ParticleBoundary(size[0], size[1], size[2]);
+        ParticleBoundary* r = new ParticleBoundary();
         a >> r->id[0];
         a >> r->id[1];
         a >> r->id[2];
 
         a >> s;
-        for(int i = 0; i < s; ++i){ XY1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XY1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XY2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XY2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->YZ2.push_back(Particle::deserialize(arc)); }
 
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1XY1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1XY1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1XY2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1XY2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1YZ2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2XY1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2XY1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2XY2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2XY2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2YZ2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XY1YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XY1YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XY1YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XY1YZ2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XY2YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XY2YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XY2YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XY2YZ2.push_back(Particle::deserialize(arc)); }
 
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1XY1YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1XY1YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1XY2YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1XY2YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2XY1YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2XY1YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2XY2YZ1.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2XY2YZ1.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1XY1YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1XY1YZ2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ1XY2YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ1XY2YZ2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2XY1YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2XY1YZ2.push_back(Particle::deserialize(arc)); }
         a >> s;
-        for(int i = 0; i < s; ++i){ XZ2XY2YZ2.push_back(Particle::deserialize(arc)); }
+        for(int i = 0; i < s; ++i){ r->XZ2XY2YZ2.push_back(Particle::deserialize(arc)); }
 
         return r;
     }

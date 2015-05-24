@@ -421,198 +421,287 @@ class Mesh {
                    bid[2]  > id[2]) {
                     for(auto p : b->XY1) {
                         auto particle = p->copy();
-                        particle->z((size[2] - 1) * hz + p->z());
-
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[0] - 1; i++)
-                        for(int j = 1; j < size[1] - 1; j++) {
-                            Fi[element(i, j, 0)] = b->XY2[(j - 1) * (size[0] - 2) + (i - 1)];
-                        }
+                    for(auto p : b->XY2) {
+                        auto particle = p->copy();
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  > id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[0] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(i, size[1] - 1, j)] = b->XZ1[(j - 1) * (size[0] - 2) + (i - 1)];
-                        }
+                    for(auto p : b->XZ1) {
+                        auto particle = p->copy();
+                        particle->y((size[1] - 2) * hy + p->y());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  < id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[0] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(i, 0, j)] = b->XZ2[(j - 1) * (size[0] - 2) + (i - 1)];
-                        }
+                    for(auto p : b->XZ2) {
+                        auto particle = p->copy();
+                        particle->y(hy + p->y());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1] == id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[1] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(size[0] - 1, i, j)] = b->YZ1[(j - 1) * (size[1] - 2) + (i - 1)];
-                        }
+                    for(auto p : b->YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1] == id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[1] - 1; i++)
-                        for(int j = 1; j < size[2] - 1; j++) {
-                            Fi[element(0, i, j)] = b->YZ2[(j - 1) * (size[1] - 2) + (i - 1)];
-                        }
+                    for(auto p : b->YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1]  < id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Fi[element(0, 0, i)] = b->XZ2YZ2[i - 1];
+                    for(auto p : b->XZ2YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->y(hy + p->y());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1]  > id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Fi[element(0, size[1] - 1, i)] = b->XZ1YZ2[i - 1];
+                    for(auto p : b->XZ1YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->y((size[1] - 2) * hy + p->y());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1]  < id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Fi[element(size[0] - 1, 0, i)] = b->XZ2YZ1[i - 1];
+                    for(auto p : b->XZ2YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->y(hy + p->y());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1]  > id[1] &&
                         bid[2] == id[2]) {
-                    for(int i = 1; i < size[2] - 1; ++i) {
-                        Fi[element(size[0] - 1, size[1] - 1, i)] = b->XZ1YZ1[i - 1];
+                    for(auto p : b->XZ1YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->y((size[1] - 2) * hy + p->y());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  > id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Fi[element(i, size[1] - 1, size[2] - 1)] = b->XZ1XY1[i - 1];
+                    for(auto p : b->XZ1XY1) {
+                        auto particle = p->copy();
+                        particle->y((size[1] - 2) * hy + p->y());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  < id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Fi[element(i, 0, size[2] - 1)] = b->XZ2XY1[i - 1];
+                    for(auto p : b->XZ2XY1) {
+                        auto particle = p->copy();
+                        particle->y(hy + p->y());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  > id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Fi[element(i, size[1] - 1, 0)] = b->XZ1XY2[i - 1];
+                    for(auto p : b->XZ1XY2) {
+                        auto particle = p->copy();
+                        particle->y((size[1] - 2) * hy + p->y());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0] == id[0] &&
                         bid[1]  < id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[0] - 1; ++i) {
-                        Fi[element(i, 0, 0)] = b->XZ2XY2[i - 1];
+                    for(auto p : b->XZ2XY2) {
+                        auto particle = p->copy();
+                        particle->y(hy + p->y());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Fi[element(size[0] - 1, i, size[2] - 1)] = b->XY1YZ1[i - 1];
+                    for(auto p : b->XY1YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0]  > id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Fi[element(size[0] - 1, i, 0)] = b->XY1YZ2[i - 1];
+                    for(auto p : b->XY1YZ2) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  > id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Fi[element(0, i, size[2] - 1)] = b->XY2YZ1[i - 1];
+                    for(auto p : b->XY2YZ1) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0]  < id[0] &&
                         bid[1] == id[1] &&
                         bid[2]  < id[2]) {
-                    for(int i = 1; i < size[1] - 1; ++i) {
-                        Fi[element(0, i, 0)] = b->XY2YZ2[i - 1];
+                    for(auto p : b->XY2YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
                     }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] < id[1] &&
                         bid[2] < id[2]) {
-                     Fi[element(0, 0, 0)] = b->XZ2XY2YZ2;
+                    for(auto p : b->XZ2XY2YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->y(hy + p->y());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] < id[1] &&
                         bid[2] < id[2]) {
-                     Fi[element(size[0] - 1, 0, 0)] = b->XZ2XY2YZ1;
+                    for(auto p : b->XZ2XY2YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->y(hy + p->y());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] > id[1] &&
                         bid[2] < id[2]) {
-                     Fi[element(0, size[1] - 1, 0)] = b->XZ1XY2YZ2;
+                    for(auto p : b->XZ1XY2YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->y((size[1] - 2) * hy + p->y());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] < id[1] &&
                         bid[2] > id[2]) {
-                     Fi[element(0, 0, size[2] - 1)] = b->XZ2XY1YZ2;
+                    for(auto p : b->XZ2XY1YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->y(hy + p->y());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] > id[1] &&
                         bid[2] < id[2]) {
-                     Fi[element(size[0] - 1, size[1] - 1, 0)] = b->XZ1XY2YZ1;
+                    for(auto p : b->XZ1XY2YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->y((size[1] - 2) * hy + p->y());
+                        particle->z(hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] < id[1] &&
                         bid[2] > id[2]) {
-                     Fi[element(size[0] - 1, 0, size[2] - 1)] = b->XZ2XY1YZ1;
+                    for(auto p : b->XZ2XY1YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->y(hy + p->y());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] < id[0] &&
                         bid[1] > id[1] &&
                         bid[2] > id[2]) {
-                     Fi[element(0, size[1] - 1, size[2] - 1)] = b->XZ1XY1YZ2;
+                    for(auto p : b->XZ1XY1YZ2) {
+                        auto particle = p->copy();
+                        particle->x(hx + p->x());
+                        particle->y((size[1] - 2) * hy + p->y());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
 
                 else if(bid[0] > id[0] &&
                         bid[1] > id[1] &&
                         bid[2] > id[2]) {
-                     Fi[element(size[0] - 1, size[1] - 1, size[2] - 1)] = b->XZ1XY1YZ1;
+                    for(auto p : b->XZ1XY1YZ1) {
+                        auto particle = p->copy();
+                        particle->x((size[0] - 2) * hx + p->x());
+                        particle->y((size[1] - 2) * hy + p->y());
+                        particle->z((size[2] - 2) * hz + p->z());
+                        ps.push_back(particle);
+                    }
                 }
             }
         }
@@ -972,7 +1061,7 @@ class Mesh {
 
         ParticleBoundary* moveParticles() {
             ParticleBoundary* boundary = new ParticleBoundary();
-            std::vector<Particle*> = remove;
+            std::vector<Particle*> remove;
 
             for(auto p : ps) {
                 double xa,ya,za,xb,yb,zb;
@@ -1007,22 +1096,22 @@ class Mesh {
                 la=za; za=za-la; la++;
 
 
-                fx=(1-xb)*((1-ya)*((1-za)*Fx[ib  ][ka  ][la]+za*Fx[ib  ][ka  ][la+1])+
-                               ya *((1-za)*Fx[ib  ][ka+1][la]+za*Fx[ib  ][ka+1][la+1]))+
-                       xb *((1-ya)*((1-za)*Fx[ib+1][ka  ][la]+za*Fx[ib+1][ka  ][la+1])+
-                               ya *((1-za)*Fx[ib+1][ka+1][la]+za*Fx[ib+1][ka+1][la+1]));
-                fy=(1-xa)*((1-yb)*((1-za)*Fy[ia  ][kb  ][la]+za*Fy[ia  ][kb  ][la+1])+
-                               yb *((1-za)*Fy[ia  ][kb+1][la]+za*Fy[ia  ][kb+1][la+1]))+
-                       xa *((1-yb)*((1-za)*Fy[ia+1][kb  ][la]+za*Fy[ia+1][kb  ][la+1])+
-                               yb *((1-za)*Fy[ia+1][kb+1][la]+za*Fy[ia+1][kb+1][la+1]));
-                fz=(1-xa)*((1-ya)*((1-zb)*Fz[ia  ][ka  ][lb]+zb*Fz[ia  ][ka  ][lb+1])+
-                               ya *((1-zb)*Fz[ia  ][ka+1][lb]+zb*Fz[ia  ][ka+1][lb+1]))+
-                       xa *((1-ya)*((1-zb)*Fz[ia+1][ka  ][lb]+zb*Fz[ia+1][ka  ][lb+1])+
-                               ya *((1-zb)*Fz[ia+1][ka+1][lb]+zb*Fz[ia+1][ka+1][lb+1]));
+                fx=(1-xb)*((1-ya)*((1-za)*Fx[element(ib, ka, la)]+za*Fx[element(ib, ka, la+1)])+
+                               ya *((1-za)*Fx[element(ib, ka+1, la)]+za*Fx[element(ib, ka+1, la+1)]))+
+                       xb *((1-ya)*((1-za)*Fx[element(ib+1, ka, la)]+za*Fx[element(ib+1, ka, la+1)])+
+                               ya *((1-za)*Fx[element(ib+1, ka+1, la)]+za*Fx[element(ib+1, ka+1, la+1)]));
+                fy=(1-xa)*((1-yb)*((1-za)*Fy[element(ia, kb, la)]+za*Fy[element(ia, kb, la+1)])+
+                               yb *((1-za)*Fy[element(ia, kb+1, la)]+za*Fy[element(ia, kb+1, la+1)]))+
+                       xa *((1-yb)*((1-za)*Fy[element(ia+1, kb, la)]+za*Fy[element(ia+1, kb, la+1)])+
+                               yb *((1-za)*Fy[element(ia+1, kb+1, la)]+za*Fy[element(ia+1, kb+1, la+1)]));
+                fz=(1-xa)*((1-ya)*((1-zb)*Fz[element(ia, ka, lb)]+zb*Fz[element(ia, ka, lb+1)])+
+                               ya *((1-zb)*Fz[element(ia, ka+1, lb)]+zb*Fz[element(ia, ka+1, lb+1)]))+
+                       xa *((1-ya)*((1-zb)*Fz[element(ia+1, ka, lb)]+zb*Fz[element(ia+1, ka, lb+1)])+
+                               ya *((1-zb)*Fz[element(ia+1, ka+1, lb)]+zb*Fz[element(ia+1, ka+1, lb+1)]));
 
-                du=tau*fx; if (fabs(du)<=hxt) u+=du; else { u+=(1-2*signbit(du))*hxt;  }
-                dv=tau*fy; if (fabs(dv)<=hyt) v+=dv; else { v+=(1-2*signbit(dv))*hyt;  }
-                dw=tau*fz; if (fabs(dw)<=hzt) w+=dw; else { w+=(1-2*signbit(dw))*hzt;  }
+                du=tau*fx; if (fabs(du)<=hxt) u+=du; else { u+=(1-2*std::signbit(du))*hxt;  }
+                dv=tau*fy; if (fabs(dv)<=hyt) v+=dv; else { v+=(1-2*std::signbit(dv))*hyt;  }
+                dw=tau*fz; if (fabs(dw)<=hzt) w+=dw; else { w+=(1-2*std::signbit(dw))*hzt;  }
                 x+=tau*u;
                 y+=tau*v;
                 z+=tau*w;
@@ -1047,7 +1136,6 @@ class Mesh {
                     if(side[4]) {
                         if(x < 0) { u=-u; x=-x; }
                     } else {
-                       x=-x;
                        s[4] = true;
                     }
                 }
@@ -1055,7 +1143,6 @@ class Mesh {
                     if(side[2]) {
                        if(y < 0) { v=-v; y=-y; }
                     } else {
-                       y = -y;
                        s[2] = true;
                     }
                 }
@@ -1063,7 +1150,6 @@ class Mesh {
                     if(side[0]) {
                        if(z < 0) { z=-z; w=-w; }
                     } else {
-                       z=-z;
                        s[0] = true;
                     }
                 }
@@ -1096,9 +1182,9 @@ class Mesh {
                 p->x(x);
                 p->y(y);
                 p->z(z);
-                p->px(u);
-                p->py(v);
-                p->pz(w);
+                p->vx(u);
+                p->vy(v);
+                p->vz(w);
 
                 if(s[XZ1] && s[XY1] && s[YZ1]) {
                     boundary->XZ1XY1YZ1.push_back(p->copy());
@@ -1212,6 +1298,10 @@ class Mesh {
                     ps.erase(it);
                 delete r;
             }
+
+            boundary->id[0] = id[0];
+            boundary->id[1] = id[1];
+            boundary->id[2] = id[2];
 
             return boundary;
 
