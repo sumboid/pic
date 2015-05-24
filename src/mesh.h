@@ -4,6 +4,7 @@
 #include <cstring>
 #include <ts/util/Arc.h>
 #include <vector>
+#include <algorithm>
 
 #include "particle.h"
 #include "boundary.h"
@@ -21,9 +22,11 @@ class Mesh {
         int size[3]; // X, Y, Z
 
         double hx, hy, hz;
+        double rx, ry, rz;
         double w;
         double coef;
         double am;
+        double tau;
 
         bool side[6]; //xy1 xy2 xz1 xz2 yz1 yz2
         bool corners[12]; //xz1xy1 xz1yz1 xz1xy2 xz1yz2
@@ -48,7 +51,7 @@ class Mesh {
             Fi = new double[mesh_size];
             Ro = new double[mesh_size];
 
-            int forces_size = (x + 1) * (y + 1) * (z + 1);
+            int forces_size = (x + 2) * (y + 2) * (z + 2);
             Fx = new double[forces_size];
             Fy = new double[forces_size];
             Fz = new double[forces_size];
@@ -406,6 +409,215 @@ class Mesh {
             }
         }
 
+        inline void setBoundaryParticle(std::vector<ParticleBoundary*>& bs) {
+            for(auto b : bs) {
+                int64_t bid[3];
+                bid[0] = b->id[0];
+                bid[1] = b->id[1];
+                bid[2] = b->id[2];
+
+                if(bid[0] == id[0] &&
+                   bid[1] == id[1] &&
+                   bid[2]  > id[2]) {
+                    for(auto p : b->XY1) {
+                        auto particle = p->copy();
+                        particle->z((size[2] - 1) * hz + p->z());
+
+                    }
+                }
+
+                else if(bid[0] == id[0] &&
+                        bid[1] == id[1] &&
+                        bid[2]  < id[2]) {
+                    for(int i = 1; i < size[0] - 1; i++)
+                        for(int j = 1; j < size[1] - 1; j++) {
+                            Fi[element(i, j, 0)] = b->XY2[(j - 1) * (size[0] - 2) + (i - 1)];
+                        }
+                }
+
+                else if(bid[0] == id[0] &&
+                        bid[1]  > id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[0] - 1; i++)
+                        for(int j = 1; j < size[2] - 1; j++) {
+                            Fi[element(i, size[1] - 1, j)] = b->XZ1[(j - 1) * (size[0] - 2) + (i - 1)];
+                        }
+                }
+
+                else if(bid[0] == id[0] &&
+                        bid[1]  < id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[0] - 1; i++)
+                        for(int j = 1; j < size[2] - 1; j++) {
+                            Fi[element(i, 0, j)] = b->XZ2[(j - 1) * (size[0] - 2) + (i - 1)];
+                        }
+                }
+
+                else if(bid[0]  > id[0] &&
+                        bid[1] == id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[1] - 1; i++)
+                        for(int j = 1; j < size[2] - 1; j++) {
+                            Fi[element(size[0] - 1, i, j)] = b->YZ1[(j - 1) * (size[1] - 2) + (i - 1)];
+                        }
+                }
+
+                else if(bid[0]  < id[0] &&
+                        bid[1] == id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[1] - 1; i++)
+                        for(int j = 1; j < size[2] - 1; j++) {
+                            Fi[element(0, i, j)] = b->YZ2[(j - 1) * (size[1] - 2) + (i - 1)];
+                        }
+                }
+
+                else if(bid[0]  < id[0] &&
+                        bid[1]  < id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[2] - 1; ++i) {
+                        Fi[element(0, 0, i)] = b->XZ2YZ2[i - 1];
+                    }
+                }
+
+                else if(bid[0]  < id[0] &&
+                        bid[1]  > id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[2] - 1; ++i) {
+                        Fi[element(0, size[1] - 1, i)] = b->XZ1YZ2[i - 1];
+                    }
+                }
+
+                else if(bid[0]  > id[0] &&
+                        bid[1]  < id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[2] - 1; ++i) {
+                        Fi[element(size[0] - 1, 0, i)] = b->XZ2YZ1[i - 1];
+                    }
+                }
+
+                else if(bid[0]  > id[0] &&
+                        bid[1]  > id[1] &&
+                        bid[2] == id[2]) {
+                    for(int i = 1; i < size[2] - 1; ++i) {
+                        Fi[element(size[0] - 1, size[1] - 1, i)] = b->XZ1YZ1[i - 1];
+                    }
+                }
+
+                else if(bid[0] == id[0] &&
+                        bid[1]  > id[1] &&
+                        bid[2]  > id[2]) {
+                    for(int i = 1; i < size[0] - 1; ++i) {
+                        Fi[element(i, size[1] - 1, size[2] - 1)] = b->XZ1XY1[i - 1];
+                    }
+                }
+
+                else if(bid[0] == id[0] &&
+                        bid[1]  < id[1] &&
+                        bid[2]  > id[2]) {
+                    for(int i = 1; i < size[0] - 1; ++i) {
+                        Fi[element(i, 0, size[2] - 1)] = b->XZ2XY1[i - 1];
+                    }
+                }
+
+                else if(bid[0] == id[0] &&
+                        bid[1]  > id[1] &&
+                        bid[2]  < id[2]) {
+                    for(int i = 1; i < size[0] - 1; ++i) {
+                        Fi[element(i, size[1] - 1, 0)] = b->XZ1XY2[i - 1];
+                    }
+                }
+
+                else if(bid[0] == id[0] &&
+                        bid[1]  < id[1] &&
+                        bid[2]  < id[2]) {
+                    for(int i = 1; i < size[0] - 1; ++i) {
+                        Fi[element(i, 0, 0)] = b->XZ2XY2[i - 1];
+                    }
+                }
+
+                else if(bid[0]  > id[0] &&
+                        bid[1] == id[1] &&
+                        bid[2]  > id[2]) {
+                    for(int i = 1; i < size[1] - 1; ++i) {
+                        Fi[element(size[0] - 1, i, size[2] - 1)] = b->XY1YZ1[i - 1];
+                    }
+                }
+
+                else if(bid[0]  > id[0] &&
+                        bid[1] == id[1] &&
+                        bid[2]  < id[2]) {
+                    for(int i = 1; i < size[1] - 1; ++i) {
+                        Fi[element(size[0] - 1, i, 0)] = b->XY1YZ2[i - 1];
+                    }
+                }
+
+                else if(bid[0]  < id[0] &&
+                        bid[1] == id[1] &&
+                        bid[2]  > id[2]) {
+                    for(int i = 1; i < size[1] - 1; ++i) {
+                        Fi[element(0, i, size[2] - 1)] = b->XY2YZ1[i - 1];
+                    }
+                }
+
+                else if(bid[0]  < id[0] &&
+                        bid[1] == id[1] &&
+                        bid[2]  < id[2]) {
+                    for(int i = 1; i < size[1] - 1; ++i) {
+                        Fi[element(0, i, 0)] = b->XY2YZ2[i - 1];
+                    }
+                }
+
+                else if(bid[0] < id[0] &&
+                        bid[1] < id[1] &&
+                        bid[2] < id[2]) {
+                     Fi[element(0, 0, 0)] = b->XZ2XY2YZ2;
+                }
+
+                else if(bid[0] > id[0] &&
+                        bid[1] < id[1] &&
+                        bid[2] < id[2]) {
+                     Fi[element(size[0] - 1, 0, 0)] = b->XZ2XY2YZ1;
+                }
+
+                else if(bid[0] < id[0] &&
+                        bid[1] > id[1] &&
+                        bid[2] < id[2]) {
+                     Fi[element(0, size[1] - 1, 0)] = b->XZ1XY2YZ2;
+                }
+
+                else if(bid[0] < id[0] &&
+                        bid[1] < id[1] &&
+                        bid[2] > id[2]) {
+                     Fi[element(0, 0, size[2] - 1)] = b->XZ2XY1YZ2;
+                }
+
+                else if(bid[0] > id[0] &&
+                        bid[1] > id[1] &&
+                        bid[2] < id[2]) {
+                     Fi[element(size[0] - 1, size[1] - 1, 0)] = b->XZ1XY2YZ1;
+                }
+
+                else if(bid[0] > id[0] &&
+                        bid[1] < id[1] &&
+                        bid[2] > id[2]) {
+                     Fi[element(size[0] - 1, 0, size[2] - 1)] = b->XZ2XY1YZ1;
+                }
+
+                else if(bid[0] < id[0] &&
+                        bid[1] > id[1] &&
+                        bid[2] > id[2]) {
+                     Fi[element(0, size[1] - 1, size[2] - 1)] = b->XZ1XY1YZ2;
+                }
+
+                else if(bid[0] > id[0] &&
+                        bid[1] > id[1] &&
+                        bid[2] > id[2]) {
+                     Fi[element(size[0] - 1, size[1] - 1, size[2] - 1)] = b->XZ1XY1YZ1;
+                }
+            }
+        }
+
+
         inline void setBoundaryRo(std::vector<RoBoundary*>& bs) {
             for(auto b : bs) {
                 int64_t bid[3];
@@ -758,7 +970,250 @@ class Mesh {
             for(int _ = 0; _ < size[0]*size[1]*size[2]; ++_) Ro[_] *= s;
         }
 
-        std::vector<Particle*> moveParticles() {
+        ParticleBoundary* moveParticles() {
+            ParticleBoundary* boundary = new ParticleBoundary();
+            std::vector<Particle*> = remove;
+
+            for(auto p : ps) {
+                double xa,ya,za,xb,yb,zb;
+                int ia,ka,la,ib,kb,lb;
+                double fx, fy, fz;
+                double x,y,z,u,v,w;
+
+                double du,dv,dw;
+                const double hxt = hx/tau;
+                const double hyt = hy/tau;
+                const double hzt = hz/tau;
+
+                x=p->x();
+                y=p->y();
+                z=p->z();
+                u=p->vx();
+                v=p->vy();
+                w=p->vz();
+
+
+                xb=x/hx;
+                yb=y/hy;
+                zb=z/hz;
+                xa=xb-0.5;
+                ya=yb-0.5;
+                za=zb-0.5;
+                ib=xb; xb=xb-ib; ib++;
+                kb=yb; yb=yb-kb; kb++;
+                lb=zb; zb=zb-lb; lb++;
+                ia=xa; xa=xa-ia; ia++;
+                ka=ya; ya=ya-ka; ka++;
+                la=za; za=za-la; la++;
+
+
+                fx=(1-xb)*((1-ya)*((1-za)*Fx[ib  ][ka  ][la]+za*Fx[ib  ][ka  ][la+1])+
+                               ya *((1-za)*Fx[ib  ][ka+1][la]+za*Fx[ib  ][ka+1][la+1]))+
+                       xb *((1-ya)*((1-za)*Fx[ib+1][ka  ][la]+za*Fx[ib+1][ka  ][la+1])+
+                               ya *((1-za)*Fx[ib+1][ka+1][la]+za*Fx[ib+1][ka+1][la+1]));
+                fy=(1-xa)*((1-yb)*((1-za)*Fy[ia  ][kb  ][la]+za*Fy[ia  ][kb  ][la+1])+
+                               yb *((1-za)*Fy[ia  ][kb+1][la]+za*Fy[ia  ][kb+1][la+1]))+
+                       xa *((1-yb)*((1-za)*Fy[ia+1][kb  ][la]+za*Fy[ia+1][kb  ][la+1])+
+                               yb *((1-za)*Fy[ia+1][kb+1][la]+za*Fy[ia+1][kb+1][la+1]));
+                fz=(1-xa)*((1-ya)*((1-zb)*Fz[ia  ][ka  ][lb]+zb*Fz[ia  ][ka  ][lb+1])+
+                               ya *((1-zb)*Fz[ia  ][ka+1][lb]+zb*Fz[ia  ][ka+1][lb+1]))+
+                       xa *((1-ya)*((1-zb)*Fz[ia+1][ka  ][lb]+zb*Fz[ia+1][ka  ][lb+1])+
+                               ya *((1-zb)*Fz[ia+1][ka+1][lb]+zb*Fz[ia+1][ka+1][lb+1]));
+
+                du=tau*fx; if (fabs(du)<=hxt) u+=du; else { u+=(1-2*signbit(du))*hxt;  }
+                dv=tau*fy; if (fabs(dv)<=hyt) v+=dv; else { v+=(1-2*signbit(dv))*hyt;  }
+                dw=tau*fz; if (fabs(dw)<=hzt) w+=dw; else { w+=(1-2*signbit(dw))*hzt;  }
+                x+=tau*u;
+                y+=tau*v;
+                z+=tau*w;
+
+                int ix = x;
+                int iy = y;
+                int iz = z;
+
+                enum Side {
+                    XY1 = 0,
+                    XY2 = 1,
+                    XZ1 = 2,
+                    XZ2 = 3,
+                    YZ1 = 4,
+                    YZ2 = 5
+                };
+
+                bool s[6]; //xy1 xy2 xz1 xz2 yz1 yz2
+                for(int i = 0; i < 6; ++i) s[i] = false;
+
+                if (ix == 0) {
+                    if(side[4]) {
+                        if(x < 0) { u=-u; x=-x; }
+                    } else {
+                       x=-x;
+                       s[4] = true;
+                    }
+                }
+                if (iy == 0) {
+                    if(side[2]) {
+                       if(y < 0) { v=-v; y=-y; }
+                    } else {
+                       y = -y;
+                       s[2] = true;
+                    }
+                }
+                if (iz == 0) {
+                    if(side[0]) {
+                       if(z < 0) { z=-z; w=-w; }
+                    } else {
+                       z=-z;
+                       s[0] = true;
+                    }
+                }
+
+                if (ix >= size[0] - 1) {
+                    if(side[5]) {
+                       if(x > size[0] * hx) { x = 2 * size[0] * hx - x; u=-u; }
+                    } else {
+                       x = x - (size[0] - 1) * hx;
+                       s[5] = true;
+                    }
+                }
+                if (iy >= size[1] - 1) {
+                    if(side[3]) {
+                       if(y > size[1] * hy) { y = 2 * size[1] * hy - y; v=-v; }
+                    } else {
+                       y = y - (size[1] - 1) * hy;
+                       s[3] = true;
+                    }
+                }
+                if (iz >= size[2] - 1) {
+                    if(side[1]) {
+                        if(z > size[2] * hz) { z = 2 * size[2] * hz - z; w=-w; }
+                    } else {
+                        z = z - (size[2] - 1) * hz;
+                        s[1] = true;
+                    }
+                }
+
+                p->x(x);
+                p->y(y);
+                p->z(z);
+                p->px(u);
+                p->py(v);
+                p->pz(w);
+
+                if(s[XZ1] && s[XY1] && s[YZ1]) {
+                    boundary->XZ1XY1YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1] && s[XY2] && s[YZ1]) {
+                    boundary->XZ1XY2YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[XY1] && s[YZ1]) {
+                    boundary->XZ2XY1YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[XY2] && s[YZ1]) {
+                    boundary->XZ1XY1YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1] && s[XY1] && s[YZ2]) {
+                    boundary->XZ1XY1YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1] && s[XY2] && s[YZ2]) {
+                    boundary->XZ1XY2YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[XY1] && s[YZ2]) {
+                    boundary->XZ2XY1YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[XY2] && s[YZ2]) {
+                    boundary->XZ2XY2YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1] && s[XY1]) {
+                    boundary->XZ1XY1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1] && s[XY2]) {
+                    boundary->XZ1XY2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1] && s[YZ1]) {
+                    boundary->XZ1YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1] && s[YZ2]) {
+                    boundary->XZ1YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[XY1]) {
+                    boundary->XZ2XY1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[XY2]) {
+                    boundary->XZ2XY2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[YZ1]) {
+                    boundary->XZ2YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2] && s[YZ2]) {
+                    boundary->XZ2YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XY1] && s[YZ1]) {
+                    boundary->XY1YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XY1] && s[YZ2]) {
+                    boundary->XY1YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XY2] && s[YZ1]) {
+                    boundary->XY2YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XY2] && s[YZ2]) {
+                    boundary->XY2YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XY1]) {
+                    boundary->XY1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XY2]) {
+                    boundary->XY2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ1]) {
+                    boundary->XZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[XZ2]) {
+                    boundary->XZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[YZ1]) {
+                    boundary->YZ1.push_back(p->copy());
+                    remove.push_back(p);
+                }
+                else if(s[YZ2]) {
+                    boundary->YZ2.push_back(p->copy());
+                    remove.push_back(p);
+                }
+            }
+
+            for(auto r : remove) {
+                auto it = std::find(ps.begin(), ps.end(), r);
+                if(it != ps.end())
+                    ps.erase(it);
+                delete r;
+            }
+
+            return boundary;
 
         }
 
