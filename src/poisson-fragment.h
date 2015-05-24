@@ -66,34 +66,49 @@ class Fragment: public ts::type::Fragment {
 friend class FragmentTools;
 private:
   Mesh* mesh;
-  unsigned int bx, by, bz;
 
   double max;
 
   //Boundary stuff
-  FiBoundary* xy1;
-  FiBoundary* xy2;
-  FiBoundary* xz1;
-  FiBoundary* xz2;
-  FiBoundary* yz1;
-  FiBoundary* yz2;
-  bool Fi;
-  bool Ro;
+  FiBoundary* Fi;
+  RoBoundary* Ro;
+  ParticleBoundary* particles;
+
+  bool fib;
+  bool rob;
+  bool pab;
+
+  enum State {
+      MOVE = 0,
+      DENSITY = 1,
+      POTENTIAL = 2,
+      FORCE = 3
+  };
+
+  State state;
+
+  void next() {
+      if(state == MOVE) state = DENSITY;
+      else if(state == DENSITY) state = POTENTIAL;
+      else if(state == POTENTIAL) state = FORCE;
+      else if(state == FORCE) state = MOVE;
+  }
+
 
 public:
   Fragment(ts::type::ID id): ts::type::Fragment(id), max(0) {
-    Fi = false;
-    Ro = false;
+    fib = false;
+    rob = false;
+    pab = false;
+
+    state = POTENTIAL;
   }
 
   ~Fragment() {
     if(isBoundary()) {
-        delete xy1;
-        delete xy2;
-        delete xz1;
-        delete xz2;
-        delete yz1;
-        delete yz2;
+        if(fib) delete Fi;
+        if(rob) delete Ro;
+        if(pab) delete particles;
     } else {
         delete mesh;
     }
@@ -111,59 +126,80 @@ public:
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
       std::cout << "State: (" << iteration()  << ", " << progress()  << ")" << std::endl;
-      if(iteration() == 0 && progress() == 0) {
-        max = mesh->process();
-      }
 
-      else {
-          auto x = id().c[0];
-          auto y = id().c[1];
-          auto z = id().c[2];
-
-          struct _ {
-            bool side;
-            Fragment* fragment;
-            _ () : side(false) {}
-            void set(Fragment* f) {
-                fragment = f;
-                side = true;
-            }
-          } nbh[6]; // xy1, xy2, yz1, yz2, xz1, xz2
-
-          for(auto nb : fs) {
-              auto nid = nb->id();
-              auto nx = nid.c[0];
-              auto ny = nid.c[1];
-              auto nz = nid.c[2];
-
-              Fragment* rnb = reinterpret_cast<Fragment*>(nb);
-              std::cout << "(" << x << ", " << y << ", " << z << ") -> (" << nx << ", " << ny << ", " << nz << ")" << std::endl;
-              if      (nx < x) nbh[2].set(rnb);
-              else if (nx > x) nbh[3].set(rnb);
-              else if (ny < y) nbh[4].set(rnb);
-              else if (ny > y) nbh[5].set(rnb);
-              else if (nz < z) nbh[0].set(rnb);
-              else if (nz > z) nbh[1].set(rnb);
-          }
-
-          for(int i = 0; i < 6; ++i)
-              if(nbh[i].side != false) {
-                  if      (i == 0) mesh->setBoundaryFiXY1(nbh[i].fragment->xy1);
-                  else if (i == 1) mesh->setBoundaryFiXY2(nbh[i].fragment->xy2);
-                  else if (i == 2) mesh->setBoundaryFiYZ1(nbh[i].fragment->yz1);
-                  else if (i == 3) mesh->setBoundaryFiYZ2(nbh[i].fragment->yz2);
-                  else if (i == 4) mesh->setBoundaryFiXZ1(nbh[i].fragment->xz1);
-                  else if (i == 5) mesh->setBoundaryFiXZ2(nbh[i].fragment->xz2);
+      if(state == POTENTIAL) {
+          if(process() != 0) {
+              std::vector<FiBoundary*> bs;
+              for(auto f: fs) { //it's ok no neighbours here
+                  Fragment* rf = reinterpret_cast<Fragment*> f;
+                  bs.push_back(rf->Fi);
               }
 
-          max = mesh->process();
-      }
+              mesh->setBoundaryFi(bs);
+          } else {
+              std::vector<RoBoundary*> bs;
+              for(auto f: fs) { //it's ok no neighbours here
+                  Fragment* rf = reinterpret_cast<Fragment*> f;
+                  bs.push_back(rf->Ro);
+              }
+              mesh->setBoundaryRo(bs);
+          }
 
-      nextIteration();
-      saveState();
-      setUpdate();
-      setReduce();
-      setNeighbours(iteration(), progress());
+
+          max = mesh->processPotential();
+
+          fib = true;
+          Fi = mesh->getFiBoundary();
+
+          saveState();
+          setUpdate();
+          setReduce();
+          setNeighbours(iteration(), progress());
+          return;
+      }
+      else if(state == FORCE) {
+          std::vector<FiBoundary*> bs;
+          for(auto f: fs) {
+              Fragment* rf = reinterpret_cast<Fragment*> f;
+              bs.push_back(rf->Fi);
+          }
+
+          mesh->setBoundaryFi(bs);
+
+          mesh->processForces();
+          next();
+          return;
+      }
+      else if(state == MOVE) {
+          particles = mesh->moveParticles();
+          pab = true;
+
+          saveState();
+          setUpdate();
+          setNeighbours(iteration(), progress());
+          next();
+          return;
+      }
+      else if(state == DENSITY) {
+          std::vector<ParticlesBoundary*> bs;
+          for(auto f: fs) {
+              Fragment* rf = reinterpret_cast<Fragment*> f;
+              bs.push_back(rf->particles);
+          }
+
+          mesh->setBoundaryParticle(bs);
+
+          mesh->processDensity();
+
+          rob = true;
+          Ro = mesh->getRoBoundary();
+          saveState();
+          setUpdate();
+          setNeighbours(iteration(), progress());
+          next();
+          nextIteration();
+          return;
+      }
   }
 
   ReduceData* reduce() override {
@@ -178,22 +214,35 @@ public:
 
   void reduceStep(ts::type::ReduceData* rd) override {
     max = reinterpret_cast<ReduceData*>(rd)->get();
+    if(max < 0.001) next(); // ???
   }
 
   Fragment* getBoundary() override {
-    FiBoundary** boundary = mesh->getBoundary();
     Fragment* fragment = new Fragment(id());
-    fragment->xy1 = boundary[0];
-    fragment->xy2 = boundary[1];
-    fragment->xz1 = boundary[2];
-    fragment->xz2 = boundary[3];
-    fragment->yz1 = boundary[4];
-    fragment->yz2 = boundary[5];
-
     fragment->setBoundary();
-    fragment->Fi = true;
-    fragment->Ro = false;
-    // TODO: some boundaries may be empty
+
+    if(fib == true) {
+        fragment->fib = true;
+        fragment->Fi = Fi->copy();
+
+        fib = false;
+        delete Fi;
+    }
+    if(rob == true) {
+        fragment->rob = true;
+        fragment->Ro = Ro->copy();
+
+        rob = false;
+        delete Ro;
+    }
+    if(pab == true) {
+        fragment->pab = true;
+        fragment->particles = particles->copy();
+
+        pab = false;
+        delete particles;
+    }
+
     return fragment;
   }
 
@@ -203,23 +252,18 @@ public:
     a << id().c[1];
     a << id().c[2];
 
-    a << Fi;
-    a << Ro;
+    a << fib;
+    a << rob;
+    a << pab;
 
-    if(Fi == true) {
-      xy1->serialize(arc);
-      xy2->serialize(arc);
-      yz1->serialize(arc);
-      yz2->serialize(arc);
-      xz1->serialize(arc);
-      xz2->serialize(arc);
-    } else if(Ro == true) {
-      xy1->serializeRo(arc);
-      xy2->serializeRo(arc);
-      yz1->serializeRo(arc);
-      yz2->serializeRo(arc);
-      xz1->serializeRo(arc);
-      xz2->serializeRo(arc);
+    if(fib == true) {
+        Fi->serialize(arc);
+    }
+    else if(rob == true) {
+        Ro->serialize(arc);
+    }
+    else if(pab == true) {
+        particles->serialize(arc);
     }
   }
 
@@ -232,23 +276,18 @@ public:
 
     Fragment* f = new Fragment(ts::type::ID(x, y, z));
     f->setBoundary();
-    a >> f->Fi;
-    a >> f->Ro;
+    a >> f->fib;
+    a >> f->rob;
+    a >> f->pab;
 
-    if(f->Fi == true) {
-      f->xy1 = FiBoundary::deserialize(arc);
-      f->xy2 = FiBoundary::deserialize(arc);
-      f->yz1 = FiBoundary::deserialize(arc);
-      f->yz2 = FiBoundary::deserialize(arc);
-      f->xz1 = FiBoundary::deserialize(arc);
-      f->xz2 = FiBoundary::deserialize(arc);
-    } else if(f->Ro == true) {
-      f->xy1 = FiBoundary::deserializeRo(arc);
-      f->xy2 = FiBoundary::deserializeRo(arc);
-      f->yz1 = FiBoundary::deserializeRo(arc);
-      f->yz2 = FiBoundary::deserializeRo(arc);
-      f->xz1 = FiBoundary::deserializeRo(arc);
-      f->xz2 = FiBoundary::deserializeRo(arc);
+    if(fib == true) {
+        f->Fi = FiBoundary::deserialize(arc);
+    }
+    else if(rob == true) {
+        f->Ro = RoBoundary::deserialize(arc);
+    }
+    else if(pab == true) {
+        f->particles = ParticleBoundary::deserialize(arc);
     }
 
     return f;
@@ -257,23 +296,21 @@ public:
   void serialize(ts::Arc* arc) {
     ts::Arc& a = *arc;
     a << id().c[0] << id().c[1] << id().c[2];
-    a << bx << by << bz;
+    a << (int)state;
     mesh->serialize(arc);
   }
 
   static Fragment* deserialize(ts::Arc* arc) {
     ts::Arc& a = *arc;
-    int x, y, z, bx, by, bz;
+    int x, y, z, s;
 
     a >> x;
     a >> y;
     a >> z;
-    a >> bx;
-    a >> by;
-    a >> bz;
+    a >> s;
 
     Fragment* f = new Fragment(ts::type::ID(x, y, z));
-    f->setbnd(bx, by, bz);
+    f->state = (State) s;
     f->setMesh(new Mesh(arc));
 
     return f;
@@ -283,21 +320,24 @@ public:
     if(!isBoundary()) {
         Fragment* f = new Fragment(id());
         f->setMesh(mesh->copy());
-        f->bx = bx;
-        f->by = by;
-        f->bz = bz;
+        f->state = state;
         return f;
     } else {
         Fragment* f = new Fragment(id());
-        f->xy1 = xy1->copy();
-        f->xy2 = xy2->copy();
-        f->xz1 = xz1->copy();
-        f->xz2 = xz2->copy();
-        f->yz1 = yz1->copy();
-        f->yz2 = yz2->copy();
+        f->fib = fib;
+        f->rob = rob;
+        f->pab = pab;
 
-        f->Fi = Fi;
-        f->Ro = Ro;
+        if(fib == true) {
+            f->Fi = Fi->copy();
+        }
+        else if(rob == true) {
+            f->Ro = Ro->copy();
+        }
+        else if(pab == true) {
+            f->particles = particles->copy();
+        }
+
         return f;
     }
 

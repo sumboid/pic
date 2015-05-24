@@ -978,7 +978,7 @@ class Mesh {
             }
         }
 
-        inline double process() {
+        inline double processPotential() {
             double max = 0;
             int ib = (side[4] ? 2 : 1);
             int ie = (side[5] ? size[0] - 2 : size[0] - 1);
