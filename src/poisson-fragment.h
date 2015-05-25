@@ -118,28 +118,23 @@ public:
     mesh = _mesh;
   }
 
-  void setbnd(int _bx, int _by, int _bz) {
-    bx = _bx;
-    by = _by;
-    bz = _bz;
-  }
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
       std::cout << "State: (" << iteration()  << ", " << progress()  << ")" << std::endl;
 
       if(state == POTENTIAL) {
-          if(process() != 0) {
+          if(progress() != 0) {
               std::vector<FiBoundary*> bs;
-              for(auto f: fs) { //it's ok no neighbours here
-                  Fragment* rf = reinterpret_cast<Fragment*> f;
+              for(auto f : fs) { //it's ok no neighbours here
+                  Fragment* rf = reinterpret_cast<Fragment*>(f);
                   bs.push_back(rf->Fi);
               }
 
               mesh->setBoundaryFi(bs);
           } else {
               std::vector<RoBoundary*> bs;
-              for(auto f: fs) { //it's ok no neighbours here
-                  Fragment* rf = reinterpret_cast<Fragment*> f;
+              for(auto f : fs) { //it's ok no neighbours here
+                  Fragment* rf = reinterpret_cast<Fragment*>(f);
                   bs.push_back(rf->Ro);
               }
               mesh->setBoundaryRo(bs);
@@ -159,8 +154,8 @@ public:
       }
       else if(state == FORCE) {
           std::vector<FiBoundary*> bs;
-          for(auto f: fs) {
-              Fragment* rf = reinterpret_cast<Fragment*> f;
+          for(auto f : fs) {
+              Fragment* rf = reinterpret_cast<Fragment*>(f);
               bs.push_back(rf->Fi);
           }
 
@@ -181,9 +176,9 @@ public:
           return;
       }
       else if(state == DENSITY) {
-          std::vector<ParticlesBoundary*> bs;
+          std::vector<ParticleBoundary*> bs;
           for(auto f: fs) {
-              Fragment* rf = reinterpret_cast<Fragment*> f;
+              Fragment* rf = reinterpret_cast<Fragment*>(f);
               bs.push_back(rf->particles);
           }
 
@@ -280,13 +275,13 @@ public:
     a >> f->rob;
     a >> f->pab;
 
-    if(fib == true) {
+    if(f->fib == true) {
         f->Fi = FiBoundary::deserialize(arc);
     }
-    else if(rob == true) {
+    else if(f->rob == true) {
         f->Ro = RoBoundary::deserialize(arc);
     }
-    else if(pab == true) {
+    else if(f->pab == true) {
         f->particles = ParticleBoundary::deserialize(arc);
     }
 

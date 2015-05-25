@@ -38,30 +38,5 @@ std::map<int, double> lazybalancer(uint64_t, std::map<int, uint64_t>) {
 
 int main()
 {
-  System* s = createSystem();
-  Fragment* fragment = new Fragment(ID(s->id(), 0, 0));
-  fragment->setbnd(1, 1, 1);
-
-  Mesh* mesh = new Mesh(10, 10, 10);
-  if(s->id() == 0) {
-      mesh->setCorners(true, true, true, true, true, false);
-      fragment->addNeighbour(ID(1, 0, 0), 1);
-  }
-  else if (s->id() == 1) {
-      mesh->setCorners(true, true, true, true, false, true);
-      fragment->addNeighbour(ID(0, 0, 0), 0);
-  }
-  mesh->sethxyz(1, 1, 1);
-  mesh->setw(1);
-  mesh->setcoef(1);
-
-  fragment->setMesh(mesh);
-
-  s->addFragment(fragment);
-
-  s->setBalancer(lazybalancer);
-  s->run();
-
-  delete s;
   return 0;
 }

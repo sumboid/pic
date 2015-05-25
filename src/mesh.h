@@ -1365,8 +1365,8 @@ class Mesh {
             return result;
         }
 
-        FiBoundary* getRoBoundary() {
-            FiBoundary* result = new FiBoundary(size[0], size[1], size[2]);
+        RoBoundary* getRoBoundary() {
+            RoBoundary* result = new RoBoundary(size[0], size[1], size[2]);
 
             for(int i = 0; i < size[0]; ++i)
                 for(int j = 0; j < size[1]; ++j)  {
