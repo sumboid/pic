@@ -60,6 +60,17 @@ class Mesh {
             memset(Ro, 1, mesh_size * sizeof(double));
             for(int i = 0; i < 6; ++i) side[i] = false;
             for(int i = 0; i < 12; ++i) corners[i] = false;
+
+            hx = 4.0 / (64 - 2);
+            hy = 4.0 / (64 - 2);
+            hz = 4.0 / (64 - 2);
+            tau = 0.001;
+            am = 1.0 / 10000;
+            w = 1.2;
+            double hx2 = 1. / (hx * hx);
+            double hy2 = 1. / (hy * hy);
+            double hz2 = 1. / (hz * hz);
+            coef = 0.3 * w / (hx2 + hy2 + hz2);
         }
 
         Mesh(ts::Arc* arc) {
@@ -205,6 +216,7 @@ class Mesh {
         inline void setBoundaryFi(std::vector<FiBoundary*>& bs) {
             for(auto b : bs) {
                 int64_t bid[3];
+
                 bid[0] = b->id[0];
                 bid[1] = b->id[1];
                 bid[2] = b->id[2];

@@ -117,6 +117,10 @@ struct FiBoundary {
         result->XZ2XY1YZ2 = XZ2XY1YZ2;
         result->XZ2XY2YZ2 = XZ2XY2YZ2;
 
+        result->id[0] = id[0];
+        result->id[1] = id[1];
+        result->id[2] = id[2];
+
         return result;
     }
 
@@ -262,6 +266,10 @@ struct RoBoundary {
         memcpy(result->XZ2, XZ2, 2 * size[0] * size[2] * sizeof(double));
         memcpy(result->YZ1, YZ1, 2 * size[1] * size[2] * sizeof(double));
         memcpy(result->YZ2, YZ2, 2 * size[1] * size[2] * sizeof(double));
+
+        result->id[0] = id[0];
+        result->id[1] = id[1];
+        result->id[2] = id[2];
 
         return result;
     }
@@ -413,6 +421,10 @@ struct ParticleBoundary {
         for(auto i : XZ1XY2YZ2){ result->XZ1XY2YZ2.push_back(i->copy()); }
         for(auto i : XZ2XY1YZ2){ result->XZ2XY1YZ2.push_back(i->copy()); }
         for(auto i : XZ2XY2YZ2){ result->XZ2XY2YZ2.push_back(i->copy()); }
+
+        result->id[0] = id[0];
+        result->id[1] = id[1];
+        result->id[2] = id[2];
 
         return result;
     }

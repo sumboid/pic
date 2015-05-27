@@ -85,6 +85,8 @@ private:
       FORCE = 3
   };
 
+  int potential_c;
+
   State state;
 
   void next() {
@@ -102,6 +104,7 @@ public:
     pab = false;
 
     state = POTENTIAL;
+    potential_c = 0;
   }
 
   ~Fragment() {
@@ -140,16 +143,24 @@ public:
               mesh->setBoundaryRo(bs);
           }
 
+          // if(max < 1.0e-4) next(); // ???
 
-          max = mesh->processPotential();
+          if(potential_c < 1) {
+              max = mesh->processPotential();
 
-          fib = true;
-          Fi = mesh->getFiBoundary();
+              fib = true;
+              Fi = mesh->getFiBoundary();
 
-          saveState();
-          setUpdate();
-          setReduce();
-          setNeighbours(iteration(), progress());
+              saveState();
+              setUpdate();
+              setReduce();
+              setNeighbours(iteration(), progress());
+              ++potential_c;
+          } else {
+              next();
+              potential_c = 0;
+          }
+
           return;
       }
       else if(state == FORCE) {
@@ -198,6 +209,7 @@ public:
   }
 
   ReduceData* reduce() override {
+    std::cout << ":<" << std::endl;
     return new ReduceData(max);
   }
 
@@ -208,8 +220,8 @@ public:
   }
 
   void reduceStep(ts::type::ReduceData* rd) override {
+      std::cout << "WTF" << std::endl;
     max = reinterpret_cast<ReduceData*>(rd)->get();
-    if(max < 0.001) next(); // ???
   }
 
   Fragment* getBoundary() override {
