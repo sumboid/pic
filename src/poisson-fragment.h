@@ -103,7 +103,7 @@ public:
     rob = false;
     pab = false;
 
-    state = POTENTIAL;
+    state = DENSITY;
     potential_c = 0;
   }
 
@@ -123,10 +123,30 @@ public:
 
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
-      std::cout << "State: (" << iteration()  << ", " << progress()  << ")" << std::endl;
+      std::cout << id().c[0] << ": State: (" << iteration()  << ", " << progress()  << ")" << std::endl;
 
-      if(state == POTENTIAL) {
-          if(progress() != 0) {
+      if(state == DENSITY) {
+          std::vector<ParticleBoundary*> bs;
+          for(auto f: fs) {
+              Fragment* rf = reinterpret_cast<Fragment*>(f);
+              bs.push_back(rf->particles);
+          }
+
+          mesh->setBoundaryParticle(bs);
+
+          mesh->processDensity();
+
+          rob = true;
+          Ro = mesh->getRoBoundary();
+          saveState();
+          setUpdate();
+          setNeighbours(iteration(), progress());
+          next();
+          mesh->printRo(id().tostr());
+          return;
+      }
+      else if(state == POTENTIAL) {
+          if(potential_c != 0) {
               std::vector<FiBoundary*> bs;
               for(auto f : fs) { //it's ok no neighbours here
                   Fragment* rf = reinterpret_cast<Fragment*>(f);
@@ -141,11 +161,12 @@ public:
                   bs.push_back(rf->Ro);
               }
               mesh->setBoundaryRo(bs);
+              mesh->printRo(id().tostr());
           }
 
-          // if(max < 1.0e-4) next(); // ???
+          std::cout << "GLOBAL MAX: " << max <<std::endl;
 
-          if(potential_c < 1) {
+          if(max > 1.0e-4 || potential_c == 0) {
               max = mesh->processPotential();
 
               fib = true;
@@ -184,32 +205,12 @@ public:
           setUpdate();
           setNeighbours(iteration(), progress());
           next();
-          return;
-      }
-      else if(state == DENSITY) {
-          std::vector<ParticleBoundary*> bs;
-          for(auto f: fs) {
-              Fragment* rf = reinterpret_cast<Fragment*>(f);
-              bs.push_back(rf->particles);
-          }
-
-          mesh->setBoundaryParticle(bs);
-
-          mesh->processDensity();
-
-          rob = true;
-          Ro = mesh->getRoBoundary();
-          saveState();
-          setUpdate();
-          setNeighbours(iteration(), progress());
-          next();
           nextIteration();
           return;
       }
   }
 
   ReduceData* reduce() override {
-    std::cout << ":<" << std::endl;
     return new ReduceData(max);
   }
 
@@ -220,7 +221,6 @@ public:
   }
 
   void reduceStep(ts::type::ReduceData* rd) override {
-      std::cout << "WTF" << std::endl;
     max = reinterpret_cast<ReduceData*>(rd)->get();
   }
 
@@ -351,7 +351,7 @@ public:
   }
 
   uint64_t weight() {
-    return 1;
+    return 100;
   }
 };
 

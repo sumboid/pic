@@ -1,6 +1,8 @@
 #ifndef PARTICLE
 #define PARTICLE
 
+#include <iostream>
+
 class Particle {
 private:
     double _x, _y, _z;

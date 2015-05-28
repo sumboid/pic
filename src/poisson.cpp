@@ -10,6 +10,27 @@
 using ts::system::System;
 using ts::type::ID;
 
+namespace {
+    const int nx = 20;
+    const int ny = 20;
+    const int nz = 20;
+
+    const double sx = 4;
+    const double sy = 4;
+    const double sz = 4;
+
+    const double hx = sx / (nx - 2);
+    const double hy = sy / (ny - 2);
+    const double hz = sz / (nz - 2);
+
+    const double cx = sx / 2;
+    const double cy = sy / 2;
+    const double cz = sz / 2;
+
+    const double PM = 1.0;
+
+}
+
 
 System* createSystem() {
   FragmentTools* ct = new FragmentTools;
@@ -36,23 +57,150 @@ std::map<int, double> lazybalancer(uint64_t, std::map<int, uint64_t>) {
   return std::map<int, double>();
 }
 
+std::tuple<int, int> interval(int current, int all, int size) {
+   int end = size % all;
+   int partSize = size / all;
+
+   if(current >= all - end) {
+       size_t some = current - (all - end);
+       return std::tuple<int, int>(partSize * current + some, partSize * current + some + partSize + 1);
+   }
+   else {
+       return std::tuple<int, int>(partSize * current, partSize * current + partSize);
+   }
+}
+
+void fillFi(Mesh* mesh, int b, int e) {
+    double x,y,z,x2,y2,z2,x2py2,x2pz2,r;
+    int i,k,l;
+
+    if(b == 0) {
+        x=-0.5*hx-cx;
+        x2=x*x;
+        for (k=0;k<ny;k++)
+        { y=(k-0.5)*hy-cy;
+            x2py2=x2+y*y;
+            for (l=0;l<nz;l++)
+            { z=(l-0.5)*hz-cz;
+                r=sqrt(x2py2+z*z);
+                mesh->setFi(0, k, l, -PM / r);
+            }
+        }
+    }
+
+    if(e == nx) {
+        x=sx+0.5*hx-cx;
+        x2=x*x;
+        for (k=0;k<ny;k++)
+        { y=(k-0.5)*hy-cy;
+            x2py2=x2+y*y;
+            for (l=0;l<nz;l++)
+            { z=(l-0.5)*hz-cz;
+                r=sqrt(x2py2+z*z);
+                mesh->setFi(nx - 1, k, l, -PM / r);
+            }
+        }
+    }
+
+    y=-0.5*hy-cy;
+    y2=y*y;
+    for (i=b;i<e;i++)
+    { x=(i-0.5)*hx-cx;
+        x2py2=x*x+y2;
+        for (l=0;l<nz;l++)
+        { z=(l-0.5)*hz-cz;
+            r=sqrt(x2py2+z*z);
+            mesh->setFi(i, 0, l, -PM / r);
+        }
+    }
+
+    y=sy+0.5*hy-cy;
+    y2=y*y;
+    for (i=b;i<e;i++)
+    { x=(i-0.5)*hx-cx;
+        x2py2=x*x+y2;
+        for (l=0;l<nz;l++)
+        { z=(l-0.5)*hz-cz;
+            r=sqrt(x2py2+z*z);
+            mesh->setFi(i, ny - 1, l, -PM / r);
+        }
+    }
+
+    z=-0.5*hz-cz;
+    z2=z*z;
+    for (i=b;i<e;i++)
+    { x=(i-0.5)*hx-cx;
+        x2pz2=x*x+z2;
+        for (k=0;k<ny;k++)
+        { y=(k-0.5)*hy-cy;
+            r=sqrt(x2pz2+y*y);
+            mesh->setFi(i, k, 0, -PM / r);
+        }
+    }
+
+    z=sz+0.5*hz-cz;
+    z2=z*z;
+    for (i=b;i<e;i++)
+    { x=(i-0.5)*hx-cx;
+        x2pz2=x*x+z2;
+        for (k=0;k<ny;k++)
+        { y=(k-0.5)*hy-cy;
+            r=sqrt(x2pz2+y*y);
+            mesh->setFi(i, k, nz - 1, -PM / r);
+        }
+    }
+}
+
+void fillParticles(Mesh* mesh, int b, int e) {
+    std::ifstream file("circle.dat");
+    double x, y, z;
+
+    for(int i = 0; i < 10000; ++i) {
+        file >> x >> y >> z;
+        int xi = x / hx;
+        if(xi >= b && xi < e) {
+            mesh->addParticle(new Particle(x - b * hx, y, z));
+        }
+    }
+
+    file.close();
+}
+
+Fragment* createFragment(int cur, int all, int size) {
+    int b, e;
+    std::tie(b, e) = interval(cur, all, size);
+    int s = e - b;
+
+    Mesh* mesh = new Mesh(s, ny, nz);
+    fillFi(mesh, b, e);
+    fillParticles(mesh, b, e);
+    mesh->setID(cur, 0, 0);
+    Fragment* f = new Fragment(ts::type::ID(cur, 0, 0));
+    if(b > 0 && e < size) {
+        mesh->setSides(true, true, true, true, false, false);
+        f->addNeighbour(ts::type::ID(cur + 1, 0, 0), cur + 1);
+        f->addNeighbour(ts::type::ID(cur - 1, 0, 0), cur - 1);
+    }
+    else if(b > 0) {
+        mesh->setSides(true, true, true, true, false, true);
+        f->addNeighbour(ts::type::ID(cur - 1, 0, 0), cur - 1);
+    }
+    else if(e < size) {
+        mesh->setSides(true, true, true, true, true, false);
+        f->addNeighbour(ts::type::ID(cur + 1, 0, 0), cur + 1);
+    }
+
+    f->setMesh(mesh);
+    return f;
+}
+
 int main()
 {
   System* s = createSystem();
   auto id = s->id();
+  auto size = s->size();
 
-  Fragment* f = new Fragment(ts::type::ID(id, 0, 0));
-  f->addNeighbour(ts::type::ID((id + 1) % 2, 0, 0), (id + 1) % 2);
-
-  Mesh* mesh = new Mesh(5, 5, 5);
-  mesh->setID(id, 0, 0);
-  if(id == 0) {
-      mesh->setSides(true, true, true, true, true, false);
-  }
-  else if(id == 1) {
-      mesh->setSides(true, true, true, true, false, true);
-  }
-  f->setMesh(mesh);
+  Fragment* f = createFragment(id, size, nx);
 
   s->setBalancer(lazybalancer);
   s->addFragment(f);

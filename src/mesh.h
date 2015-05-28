@@ -1,6 +1,8 @@
 #pragma once
 #include <math.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <cstring>
 #include <ts/util/Arc.h>
 #include <vector>
@@ -22,7 +24,6 @@ class Mesh {
         int size[3]; // X, Y, Z
 
         double hx, hy, hz;
-        double rx, ry, rz;
         double w;
         double coef;
         double am;
@@ -56,21 +57,21 @@ class Mesh {
             Fy = new double[forces_size];
             Fz = new double[forces_size];
 
-            memset(Fi, 1, mesh_size * sizeof(double));
+            memset(Fi, 0, mesh_size * sizeof(double));
             memset(Ro, 1, mesh_size * sizeof(double));
             for(int i = 0; i < 6; ++i) side[i] = false;
             for(int i = 0; i < 12; ++i) corners[i] = false;
 
-            hx = 4.0 / (64 - 2);
-            hy = 4.0 / (64 - 2);
-            hz = 4.0 / (64 - 2);
+            hx = 4.0 / (20 - 2);
+            hy = 4.0 / (20 - 2);
+            hz = 4.0 / (20 - 2);
             tau = 0.001;
             am = 1.0 / 10000;
             w = 1.2;
             double hx2 = 1. / (hx * hx);
             double hy2 = 1. / (hy * hy);
             double hz2 = 1. / (hz * hz);
-            coef = 0.3 * w / (hx2 + hy2 + hz2);
+            coef = 0.5 * w / (hx2 + hy2 + hz2);
         }
 
         Mesh(ts::Arc* arc) {
@@ -108,6 +109,23 @@ class Mesh {
             delete[] Fx;
             delete[] Fy;
             delete[] Fz;
+        }
+
+        inline void printRo(std::string filename) {
+            std::ofstream file(filename, std::ios_base::app);
+            for(int i = 0; i < size[0]; ++i) {
+                for(int j = 0; j < size[1]; ++j) {
+                    double sum = 0;
+                    for(int k = 0; k < size[2]; ++k) {
+                        sum += Ro[element(i, j, k)];
+                    }
+                    file << sum << " ";
+                }
+                file << std::endl;
+            }
+
+            file << "----------------------------" << std::endl;
+            file.close();
         }
 
         inline Mesh* copy() {
@@ -1030,12 +1048,12 @@ class Mesh {
         }
 
         void processForces() {
-            int ib = (side[4] ? 2 : 1);
-            int ie = (side[5] ? size[0] - 2 : size[0] - 1);
-            int jb = (side[2] ? 2 : 1);
-            int je = (side[3] ? size[1] - 2 : size[1] - 1);
-            int kb = (side[0] ? 2 : 1);
-            int ke = (side[1] ? size[2] - 2 : size[2] - 1);
+            int ib = (side[4] ? 1 : 0);
+            int ie = (side[5] ? size[0] - 1 : size[0]);
+            int jb = (side[2] ? 1 : 0);
+            int je = (side[3] ? size[1] - 1 : size[1]);
+            int kb = (side[0] ? 1 : 0);
+            int ke = (side[1] ? size[2] - 1 : size[2]);
 
 
             for(int i = ib; i < ie; i++)
@@ -1112,10 +1130,12 @@ class Mesh {
                                ya *((1-za)*Fx[element(ib, ka+1, la)]+za*Fx[element(ib, ka+1, la+1)]))+
                        xb *((1-ya)*((1-za)*Fx[element(ib+1, ka, la)]+za*Fx[element(ib+1, ka, la+1)])+
                                ya *((1-za)*Fx[element(ib+1, ka+1, la)]+za*Fx[element(ib+1, ka+1, la+1)]));
+
                 fy=(1-xa)*((1-yb)*((1-za)*Fy[element(ia, kb, la)]+za*Fy[element(ia, kb, la+1)])+
                                yb *((1-za)*Fy[element(ia, kb+1, la)]+za*Fy[element(ia, kb+1, la+1)]))+
                        xa *((1-yb)*((1-za)*Fy[element(ia+1, kb, la)]+za*Fy[element(ia+1, kb, la+1)])+
                                yb *((1-za)*Fy[element(ia+1, kb+1, la)]+za*Fy[element(ia+1, kb+1, la+1)]));
+
                 fz=(1-xa)*((1-ya)*((1-zb)*Fz[element(ia, ka, lb)]+zb*Fz[element(ia, ka, lb+1)])+
                                ya *((1-zb)*Fz[element(ia, ka+1, lb)]+zb*Fz[element(ia, ka+1, lb+1)]))+
                        xa *((1-ya)*((1-zb)*Fz[element(ia+1, ka, lb)]+zb*Fz[element(ia+1, ka, lb+1)])+
@@ -1382,26 +1402,26 @@ class Mesh {
 
             for(int i = 0; i < size[0]; ++i)
                 for(int j = 0; j < size[1]; ++j)  {
-                    result->XY1[j * size[0] + i] = Fi[element(i, j, 1)];
-                    result->XY1[(size[0] * size[1]) + j * size[0] + i] = Fi[element(i, j, 0)];
-                    result->XY2[j * size[0] + i] = Fi[element(i, j, size[2] - 2)];
-                    result->XY2[(size[0] * size[1]) + j * size[0] + i] = Fi[element(i, j, size[2] - 1)];
+                    result->XY1[j * size[0] + i] = Ro[element(i, j, 1)];
+                    result->XY1[(size[0] * size[1]) + j * size[0] + i] = Ro[element(i, j, 0)];
+                    result->XY2[j * size[0] + i] = Ro[element(i, j, size[2] - 2)];
+                    result->XY2[(size[0] * size[1]) + j * size[0] + i] = Ro[element(i, j, size[2] - 1)];
                 }
 
             for(int i = 0; i < size[0]; ++i)
                 for(int j = 0; j < size[2]; ++j) {
-                    result->XZ1[j * size[0] + i] = Fi[element(i, 1, j)];
-                    result->XZ1[(size[0] * size[2]) + j * size[0] + i] = Fi[element(i, 0, j)];
-                    result->XZ2[j * size[0] + i] = Fi[element(i, size[1] - 2, j)];
-                    result->XZ2[(size[0] * size[2]) + j * size[0] + i] = Fi[element(i, size[1] - 1, j)];
+                    result->XZ1[j * size[0] + i] = Ro[element(i, 1, j)];
+                    result->XZ1[(size[0] * size[2]) + j * size[0] + i] = Ro[element(i, 0, j)];
+                    result->XZ2[j * size[0] + i] = Ro[element(i, size[1] - 2, j)];
+                    result->XZ2[(size[0] * size[2]) + j * size[0] + i] = Ro[element(i, size[1] - 1, j)];
                 }
 
             for(int i = 0; i < size[1]; ++i)
                 for(int j = 0; j < size[2]; ++j) {
-                    result->YZ1[j * size[1] + i] = Fi[element(1, i, j)];
-                    result->YZ1[(size[1] * size[2]) + j * size[1] + i] = Fi[element(0, i, j)];
-                    result->YZ2[j * size[1] + i] = Fi[element(size[0] - 2, i, j)];
-                    result->YZ2[(size[1] * size[2]) + j * size[1] + i] = Fi[element(size[0] - 1, i, j)];
+                    result->YZ1[j * size[1] + i] = Ro[element(1, i, j)];
+                    result->YZ1[(size[1] * size[2]) + j * size[1] + i] = Ro[element(0, i, j)];
+                    result->YZ2[j * size[1] + i] = Ro[element(size[0] - 2, i, j)];
+                    result->YZ2[(size[1] * size[2]) + j * size[1] + i] = Ro[element(size[0] - 1, i, j)];
                 }
 
             result->id[0] = id[0];
