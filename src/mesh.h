@@ -62,10 +62,10 @@ class Mesh {
             for(int i = 0; i < 6; ++i) side[i] = false;
             for(int i = 0; i < 12; ++i) corners[i] = false;
 
-            hx = 4.0 / (20 - 2);
-            hy = 4.0 / (20 - 2);
-            hz = 4.0 / (20 - 2);
-            tau = 0.001;
+            hx = 4.0 / (20);
+            hy = 4.0 / (20);
+            hz = 4.0 / (20);
+            tau = 0.05;
             am = 1.0 / 10000;
             w = 1.2;
             double hx2 = 1. / (hx * hx);
@@ -111,20 +111,18 @@ class Mesh {
             delete[] Fz;
         }
 
-        inline void printRo(std::string filename) {
-            std::ofstream file(filename, std::ios_base::app);
-            for(int i = 0; i < size[0]; ++i) {
-                for(int j = 0; j < size[1]; ++j) {
+        inline void printRo(int iteration) {
+            std::ofstream file(std::to_string(id[0]) + "-" + std::to_string(iteration));
+            for(int i = 1; i < size[0] - 1; ++i) {
+                for(int j = 1; j < size[1] - 1; ++j) {
                     double sum = 0;
-                    for(int k = 0; k < size[2]; ++k) {
+                    for(int k = 1; k < size[2] - 1; ++k) {
                         sum += Ro[element(i, j, k)];
                     }
                     file << sum << " ";
                 }
                 file << std::endl;
             }
-
-            file << "----------------------------" << std::endl;
             file.close();
         }
 
@@ -491,6 +489,7 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(auto p : b->YZ1) {
                         auto particle = p->copy();
+                        std::cout << "GOT PARTICLE FROM YZ1: " << particle->x() << std::endl;
                         particle->x((size[0] - 2) * hx + p->x());
                         ps.push_back(particle);
                     }
@@ -501,6 +500,7 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(auto p : b->YZ2) {
                         auto particle = p->copy();
+                        std::cout << "GOT PARTICLE FROM YZ2: " << particle->x() << std::endl;
                         particle->x(hx + p->x());
                         ps.push_back(particle);
                     }
@@ -789,8 +789,8 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(int i = 0; i < size[1]; i++)
                         for(int j = 0; j < size[2]; j++) {
-                            Ro[element(size[0] - 1, i, j)] += b->YZ1[i * size[2] + j];
-                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + i * size[2] + j];
+                            Ro[element(size[0] - 1, i, j)] += b->YZ1[j * size[1] + i];
+                            Ro[element(size[0] - 2, i, j)] += b->YZ1[(size[1] * size[2]) + j * size[1] + i];
                         }
                 }
 
@@ -1025,13 +1025,13 @@ class Mesh {
             for(int i = ib; i < ie; i++)
                 for(int j = jb; j < je; j++)
                     for(int k = kb; k < ke; k++) {
-                        double Fi0 = c->Fi[element(i, j, k)];
-                        double Fi1 = c->Fi[element(i - 1, j, k)];
-                        double Fi2 = c->Fi[element(i + 1, j, k)];
-                        double Fi3 = c->Fi[element(i, j - 1, k)];
-                        double Fi4 = c->Fi[element(i, j + 1, k)];
-                        double Fi5 = c->Fi[element(i, j, k - 1)];
-                        double Fi6 = c->Fi[element(i, j, k + 1)];
+                        double Fi0 = Fi[element(i, j, k)];
+                        double Fi1 = Fi[element(i - 1, j, k)];
+                        double Fi2 = Fi[element(i + 1, j, k)];
+                        double Fi3 = Fi[element(i, j - 1, k)];
+                        double Fi4 = Fi[element(i, j + 1, k)];
+                        double Fi5 = Fi[element(i, j, k - 1)];
+                        double Fi6 = Fi[element(i, j, k + 1)];
 
                         setFi(i, j, k, coef * ((Fi1 + Fi2) * hx2 +
                                                (Fi3 + Fi4) * hy2 +
@@ -1099,10 +1099,10 @@ class Mesh {
                 double fx, fy, fz;
                 double x,y,z,u,v,w;
 
-                double du,dv,dw;
-                const double hxt = hx/tau;
-                const double hyt = hy/tau;
-                const double hzt = hz/tau;
+//                double du,dv,dw;
+//                const double hxt = hx/tau;
+//                const double hyt = hy/tau;
+//                const double hzt = hz/tau;
 
                 x=p->x();
                 y=p->y();
@@ -1141,16 +1141,21 @@ class Mesh {
                        xa *((1-ya)*((1-zb)*Fz[element(ia+1, ka, lb)]+zb*Fz[element(ia+1, ka, lb+1)])+
                                ya *((1-zb)*Fz[element(ia+1, ka+1, lb)]+zb*Fz[element(ia+1, ka+1, lb+1)]));
 
-                du=tau*fx; if (fabs(du)<=hxt) u+=du; else { u+=(1-2*std::signbit(du))*hxt;  }
-                dv=tau*fy; if (fabs(dv)<=hyt) v+=dv; else { v+=(1-2*std::signbit(dv))*hyt;  }
-                dw=tau*fz; if (fabs(dw)<=hzt) w+=dw; else { w+=(1-2*std::signbit(dw))*hzt;  }
+//                du=tau*fx; if (fabs(du)<=hxt) u+=du; else { u+=(1-2*std::signbit(du))*hxt;  }
+//                dv=tau*fy; if (fabs(dv)<=hyt) v+=dv; else { v+=(1-2*std::signbit(dv))*hyt;  }
+//                dw=tau*fz; if (fabs(dw)<=hzt) w+=dw; else { w+=(1-2*std::signbit(dw))*hzt;  }
+
+                u += tau*fx;
+                v += tau*fy;
+                w += tau*fz;
+
                 x+=tau*u;
                 y+=tau*v;
                 z+=tau*w;
 
-                int ix = x;
-                int iy = y;
-                int iz = z;
+                int ix = x / hx;
+                int iy = y / hy;
+                int iz = z / hz;
 
                 enum Side {
                     XY1 = 0,
@@ -1326,9 +1331,11 @@ class Mesh {
 
             for(auto r : remove) {
                 auto it = std::find(ps.begin(), ps.end(), r);
-                if(it != ps.end())
+                if(it != ps.end()) {
+                    std::cout << id[0] << ": REMOVE PARTICLE" << std::endl;
+                    delete *it;
                     ps.erase(it);
-                delete r;
+                }
             }
 
             boundary->id[0] = id[0];

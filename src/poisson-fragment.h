@@ -142,7 +142,6 @@ public:
           setUpdate();
           setNeighbours(iteration(), progress());
           next();
-          mesh->printRo(id().tostr());
           return;
       }
       else if(state == POTENTIAL) {
@@ -161,7 +160,7 @@ public:
                   bs.push_back(rf->Ro);
               }
               mesh->setBoundaryRo(bs);
-              mesh->printRo(id().tostr());
+              mesh->printRo(iteration());
           }
 
           std::cout << "GLOBAL MAX: " << max <<std::endl;
