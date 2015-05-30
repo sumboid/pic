@@ -98,7 +98,7 @@ private:
 
 
 public:
-  Fragment(ts::type::ID id): ts::type::Fragment(id), max(0) {
+  Fragment(ts::type::ID id): ts::type::Fragment(id), max(100) {
     fib = false;
     rob = false;
     pab = false;
@@ -142,6 +142,7 @@ public:
           setUpdate();
           setNeighbours(iteration(), progress());
           next();
+          mesh->printRo(iteration());
           return;
       }
       else if(state == POTENTIAL) {
@@ -179,6 +180,8 @@ public:
           } else {
               next();
               potential_c = 0;
+              mesh->printPhi(iteration());
+              max = 100;
           }
 
           return;
@@ -350,7 +353,7 @@ public:
   }
 
   uint64_t weight() {
-    return 100;
+    return mesh->particlesNumber();
   }
 };
 

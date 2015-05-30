@@ -62,15 +62,22 @@ class Mesh {
             for(int i = 0; i < 6; ++i) side[i] = false;
             for(int i = 0; i < 12; ++i) corners[i] = false;
 
-            hx = 4.0 / (20);
-            hy = 4.0 / (20);
-            hz = 4.0 / (20);
-            tau = 0.05;
+            tau = 0.01;
             am = 1.0 / 10000;
             w = 1.2;
-            double hx2 = 1. / (hx * hx);
-            double hy2 = 1. / (hy * hy);
-            double hz2 = 1. / (hz * hz);
+        }
+
+        inline void setSizes(double x, double y, double z, int ix, int iy, int iz) {
+            hx = x / (ix - 2);
+            hy = y / (iy - 2);
+            hz = z / (iz - 2);
+
+            double fakehx = 4 / (64 - 2);
+            double fakehy = 4 / (64 - 2);
+            double fakehz = 4 / (64 - 2);
+            double hx2 = 1. / (fakehx * fakehx);
+            double hy2 = 1. / (fakehy * fakehy);
+            double hz2 = 1. / (fakehz * fakehz);
             coef = 0.5 * w / (hx2 + hy2 + hz2);
         }
 
@@ -126,6 +133,21 @@ class Mesh {
             file.close();
         }
 
+        inline void printPhi(int iteration) {
+            std::ofstream file(std::to_string(id[0]) + "-" + std::to_string(iteration) + "-phi");
+            for(int i = 0; i < size[0]; ++i) {
+                for(int j = 0; j < size[1]; ++j) {
+                    double sum = 0;
+                    for(int k = 0; k < size[2]; ++k) {
+                        sum += Fi[element(i, j, k)];
+                    }
+                    file << sum << " ";
+                }
+                file << std::endl;
+            }
+            file.close();
+        }
+
         inline Mesh* copy() {
            Mesh* c = new Mesh(size[0] - 2, size[1] - 2, size[2] - 2);
            c->id[0] = id[0];
@@ -145,7 +167,17 @@ class Mesh {
            return c;
         }
 
+
+
         inline void addParticle(Particle* p) {
+            std::ofstream out(std::to_string(id[0]) + "-particles", std::ios_base::app);
+            int x = p->x() / hx;
+            int y = p->y() / hy;
+            int z = p->z() / hz;
+
+            out << "(" << x << ", " << y << ", " << z << ")" << std::endl;
+            out.close();
+
             ps.push_back(p);
         }
 
@@ -1025,27 +1057,28 @@ class Mesh {
             for(int i = ib; i < ie; i++)
                 for(int j = jb; j < je; j++)
                     for(int k = kb; k < ke; k++) {
-                        double Fi0 = Fi[element(i, j, k)];
-                        double Fi1 = Fi[element(i - 1, j, k)];
-                        double Fi2 = Fi[element(i + 1, j, k)];
-                        double Fi3 = Fi[element(i, j - 1, k)];
-                        double Fi4 = Fi[element(i, j + 1, k)];
-                        double Fi5 = Fi[element(i, j, k - 1)];
-                        double Fi6 = Fi[element(i, j, k + 1)];
+                        double Fi0 = c->Fi[element(i, j, k)];
+                        double Fi1 = c->Fi[element(i - 1, j, k)];
+                        double Fi2 = c->Fi[element(i + 1, j, k)];
+                        double Fi3 = c->Fi[element(i, j - 1, k)];
+                        double Fi4 = c->Fi[element(i, j + 1, k)];
+                        double Fi5 = c->Fi[element(i, j, k - 1)];
+                        double Fi6 = c->Fi[element(i, j, k + 1)];
 
-                        setFi(i, j, k, coef * ((Fi1 + Fi2) * hx2 +
+                        Fi[element(i, j, k)] =  coef * ((Fi1 + Fi2) * hx2 +
                                                (Fi3 + Fi4) * hy2 +
                                                (Fi5 + Fi6) * hz2 -
                                                4 * M_PI * getRo(i, j, k)) -
-                                               (1 - w) * Fi0);
+                                               (1 - w) * Fi0;
 
-                        double nmax = fabs(Fi0 - getFi(i, j, k));
+                        double nmax = fabs(Fi0 - Fi[element(i, j, k)]);
                         if(max < nmax)
                             max = nmax;
                     }
             delete c;
             return max;
         }
+
 
         void processForces() {
             int ib = (side[4] ? 1 : 0);
@@ -1065,15 +1098,36 @@ class Mesh {
                     }
         }
 
+        void uberprocessForces() {
+            int ib = (side[4] ? 1 : 0);
+            int ie = (side[5] ? size[0] - 1 : size[0]);
+            int jb = (side[2] ? 1 : 0);
+            int je = (side[3] ? size[1] - 1 : size[1]);
+            int kb = (side[0] ? 1 : 0);
+            int ke = (side[1] ? size[2] - 1 : size[2]);
+
+
+            for(int i = ib; i < ie; i++)
+                for(int j = jb; j < je; j++)
+                    for(int k = kb; k < ke; k++) {
+                        Fx[element(i, j, k)] = (Ro[element(i - 1, j, k)] - Ro[element(i, j, k)])/hx;
+                        Fy[element(i, j, k)] = (Ro[element(i, j - 1, k)] - Ro[element(i, j, k)])/hy;
+                        Fz[element(i, j, k)] = (Ro[element(i, j, k - 1)] - Ro[element(i, j, k)])/hz;
+                    }
+        }
+
         void processDensity() {
             double sx, sy, sz;
             int i, j, k;
             for(int _ = 0; _ < size[0]*size[1]*size[2]; ++_) Ro[_] = 0;
 
+            std::ofstream out(std::to_string(id[0]) + "-density");
             for(auto p : ps) { 
-                sx = p->x()/hx - 0.5; i = sx; sx = sx - i; i++;
-                sy = p->y()/hy - 0.5; j = sy; sy = sy - j; j++;
-                sz = p->z()/hz - 0.5; k = sz; sz = sz - k; k++;
+                sx = p->x()/hx - 0.5; i = sx; sx = sx - i;
+                sy = p->y()/hy - 0.5; j = sy; sy = sy - j;
+                sz = p->z()/hz - 0.5; k = sz; sz = sz - k;
+
+                out << "(" << i << ", " << j << ", " << k << ")" << std::endl;
 
                 Ro[element(i, j, k)] += (1 - sx) * (1 - sy) * (1 - sz);
                 Ro[element(i, j, k + 1)] += (1 - sx) * (1 - sy) * sz;
@@ -1344,6 +1398,10 @@ class Mesh {
 
             return boundary;
 
+        }
+
+        uint64_t particlesNumber() {
+            return ps.size();
         }
 
         FiBoundary* getFiBoundary() {

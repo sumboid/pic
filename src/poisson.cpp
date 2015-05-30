@@ -11,17 +11,17 @@ using ts::system::System;
 using ts::type::ID;
 
 namespace {
-    const int nx = 20;
-    const int ny = 20;
-    const int nz = 20;
+    const int nx = 22;
+    const int ny = 22;
+    const int nz = 22;
 
     const double sx = 4;
     const double sy = 4;
     const double sz = 4;
 
-    const double hx = sx / (nx);
-    const double hy = sy / (ny);
-    const double hz = sz / (nz);
+    const double hx = sx / (nx - 2);
+    const double hy = sy / (ny - 2);
+    const double hz = sz / (nz - 2);
 
     const double cx = sx / 2;
     const double cy = sy / 2;
@@ -155,6 +155,8 @@ void fillFi(Mesh* mesh, int b, int e) {
     double x,y,z,x2,y2,z2,x2py2,x2pz2,r;
     int i,k,l;
 
+
+
     if(b == 0) {
         x=-0.5*hx-cx;
         x2=x*x;
@@ -178,7 +180,7 @@ void fillFi(Mesh* mesh, int b, int e) {
             for (l=0;l<nz;l++)
             { z=(l-0.5)*hz-cz;
                 r=sqrt(x2py2+z*z);
-                mesh->setFi(nx - 1, k, l, -PM / r);
+                mesh->setFi(nx - 1 - b, k, l, -PM / r);
             }
         }
     }
@@ -197,7 +199,7 @@ void fillFi(Mesh* mesh, int b, int e) {
 
     y=sy+0.5*hy-cy;
     y2=y*y;
-    for (i=b;i<e;i++)
+    for (i=0;i<e -b;i++)
     { x=(i-0.5)*hx-cx;
         x2py2=x*x+y2;
         for (l=0;l<nz;l++)
@@ -209,7 +211,7 @@ void fillFi(Mesh* mesh, int b, int e) {
 
     z=-0.5*hz-cz;
     z2=z*z;
-    for (i=b;i<e;i++)
+    for (i=0;i<e - b;i++)
     { x=(i-0.5)*hx-cx;
         x2pz2=x*x+z2;
         for (k=0;k<ny;k++)
@@ -221,7 +223,7 @@ void fillFi(Mesh* mesh, int b, int e) {
 
     z=sz+0.5*hz-cz;
     z2=z*z;
-    for (i=b;i<e;i++)
+    for (i=0;i<e - b;i++)
     { x=(i-0.5)*hx-cx;
         x2pz2=x*x+z2;
         for (k=0;k<ny;k++)
@@ -233,14 +235,16 @@ void fillFi(Mesh* mesh, int b, int e) {
 }
 
 void fillParticles(Mesh* mesh, int b, int e) {
-    std::ifstream file("circle.dat");
+    std::ifstream file("boom.dat");
     double x, y, z;
 
     for(int i = 0; i < 10000; ++i) {
         file >> x >> y >> z;
-        int xi = x / hx;
-        if(xi >= b && xi < e) {
-            mesh->addParticle(new Particle(x - (b * hx) + (b == 0 ? 0 : hx), y, z));
+        double nx = x / hx;
+        int ix = nx;
+
+        if(ix >= b && ix < e) {
+            mesh->addParticle(new Particle(x - (b * hx) + hx, y, z));
         }
     }
 
@@ -253,9 +257,13 @@ Fragment* createFragment(int cur, int all, int size) {
     int s = e - b;
 
     Mesh* mesh = new Mesh(s, ny, nz);
-    fillFi(mesh, b, e);
-    fillParticles(mesh, b, e);
     mesh->setID(cur, 0, 0);
+    mesh->setSizes(sx, sy, sz, nx, ny, nz);
+    fillFi(mesh, b, e);
+    mesh->printPhi(100);
+    fillParticles(mesh, b, e);
+
+
     Fragment* f = new Fragment(ts::type::ID(cur, 0, 0));
     if(b > 0 && e < size) {
         mesh->setSides(true, true, true, true, false, false);
@@ -272,6 +280,8 @@ Fragment* createFragment(int cur, int all, int size) {
     }
 
     f->setMesh(mesh);
+    std::cout << cur << ": Particles number " << f->weight() << std::endl;
+    std::cout << cur << ": [" << b << ", " << e << ")" << std::endl;
     return f;
 }
 
