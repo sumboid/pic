@@ -1,12 +1,12 @@
 #pragma once
 
-#include <ts/types/Fragment.h>
-#include <ts/types/FragmentTools.h>
-#include <ts/types/ID.h>
-#include <ts/types/ReduceData.h>
-#include <ts/types/ReduceDataTools.h>
-#include <ts/util/Uberlogger.h>
-#include <ts/util/Arc.h>
+#include <ts-ng/types/Fragment.h>
+#include <ts-ng/types/FragmentTools.h>
+#include <ts-ng/types/ID.h>
+#include <ts-ng/types/ReduceData.h>
+#include <ts-ng/types/ReduceDataTools.h>
+#include <ts-ng/util/Uberlogger.h>
+#include <ts-ng/util/Arc.h>
 #include <algorithm>
 #include <string>
 #include <cstring>
@@ -142,7 +142,6 @@ public:
           setUpdate();
           setNeighbours(iteration(), progress());
           next();
-          mesh->printRo(iteration());
           return;
       }
       else if(state == POTENTIAL) {
@@ -195,12 +194,15 @@ public:
 
           mesh->setBoundaryFi(bs);
 
-          mesh->processForces();
+          mesh->uberprocessForces();
+          if(iteration() == 0) {
+             // mesh->fillVelocities();
+          }
           next();
           return;
       }
       else if(state == MOVE) {
-          particles = mesh->moveParticles();
+          particles = mesh->moveParticles(iteration());
           pab = true;
 
           saveState();
@@ -355,6 +357,12 @@ public:
   uint64_t weight() {
     return mesh->particlesNumber();
   }
+
+  Fragment* split() override {
+      return copy();
+  }
+
+  void merge(ts::type::Fragment*) override {}
 };
 
 class FragmentTools: public ts::type::FragmentTools {

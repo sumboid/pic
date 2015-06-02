@@ -4,7 +4,7 @@
 #include <fstream>
 #include <string>
 #include <cstring>
-#include <ts/util/Arc.h>
+#include <ts-ng/util/Arc.h>
 #include <vector>
 #include <algorithm>
 
@@ -38,7 +38,7 @@ class Mesh {
 
         std::vector<Particle*> ps;
 
-        inline int element(int x, int y, int z) {
+        int element(int x, int y, int z) {
             return size[0]*size[1]*z + size[0]*y + x;
         }
 
@@ -67,7 +67,7 @@ class Mesh {
             w = 1.2;
         }
 
-        inline void setSizes(double x, double y, double z, int ix, int iy, int iz) {
+        void setSizes(double x, double y, double z, int ix, int iy, int iz) {
             hx = x / (ix - 2);
             hy = y / (iy - 2);
             hz = z / (iz - 2);
@@ -118,7 +118,7 @@ class Mesh {
             delete[] Fz;
         }
 
-        inline void printRo(int iteration) {
+        void printRo(int iteration) {
             std::ofstream file(std::to_string(id[0]) + "-" + std::to_string(iteration));
             for(int i = 1; i < size[0] - 1; ++i) {
                 for(int j = 1; j < size[1] - 1; ++j) {
@@ -133,7 +133,7 @@ class Mesh {
             file.close();
         }
 
-        inline void printPhi(int iteration) {
+        void printPhi(int iteration) {
             std::ofstream file(std::to_string(id[0]) + "-" + std::to_string(iteration) + "-phi");
             for(int i = 0; i < size[0]; ++i) {
                 for(int j = 0; j < size[1]; ++j) {
@@ -148,7 +148,7 @@ class Mesh {
             file.close();
         }
 
-        inline Mesh* copy() {
+        Mesh* copy() {
            Mesh* c = new Mesh(size[0] - 2, size[1] - 2, size[2] - 2);
            c->id[0] = id[0];
            c->id[1] = id[1];
@@ -164,44 +164,37 @@ class Mesh {
            memcpy(c->Fx, Fx, (size[0] - 1) * (size[1] - 1) * (size[2] - 1) * sizeof(double));
            memcpy(c->Fy, Fy, (size[0] - 1) * (size[1] - 1) * (size[2] - 1) * sizeof(double));
            memcpy(c->Fz, Fz, (size[0] - 1) * (size[1] - 1) * (size[2] - 1) * sizeof(double));
+
            return c;
         }
 
 
 
-        inline void addParticle(Particle* p) {
-            std::ofstream out(std::to_string(id[0]) + "-particles", std::ios_base::app);
-            int x = p->x() / hx;
-            int y = p->y() / hy;
-            int z = p->z() / hz;
-
-            out << "(" << x << ", " << y << ", " << z << ")" << std::endl;
-            out.close();
-
+        void addParticle(Particle* p) {
             ps.push_back(p);
         }
 
-        inline void setID(uint64_t x, uint64_t y, uint64_t z) {
+        void setID(uint64_t x, uint64_t y, uint64_t z) {
             id[0] = x;
             id[1] = y;
             id[2] = z;
         }
 
-        inline void sethxyz(double _hx, double _hy, double _hz) {
+        void sethxyz(double _hx, double _hy, double _hz) {
             hx = _hx;
             hy = _hy;
             hz = _hz;
         }
 
-        inline void setw(double _w) {
+        void setw(double _w) {
             w = _w;
         }
 
-        inline void setcoef(double _coef) {
+        void setcoef(double _coef) {
             coef = _coef;
         }
 
-        inline void setSides(bool xy1, bool xy2,
+        void setSides(bool xy1, bool xy2,
                              bool xz1, bool xz2,
                              bool yz1, bool yz2) {
             side[0] = xy1;
@@ -233,35 +226,35 @@ class Mesh {
             }
         }
 
-        inline void setFi(int x, int y, int z, double _Fi) {
+        void setFi(int x, int y, int z, double _Fi) {
             Fi[element(x + 1, y + 1, z + 1)] = _Fi;
         }
 
-        inline void setRo(int x, int y, int z, double _Ro) {
+        void setRo(int x, int y, int z, double _Ro) {
             Ro[element(x + 1, y + 1, z + 1)] = _Ro;
         }
 
-        inline double getFi(int x, int y, int z) {
+        double getFi(int x, int y, int z) {
             return Fi[element(x + 1, y + 1, z + 1)];
         }
 
-        inline double getRo(int x, int y, int z) {
+        double getRo(int x, int y, int z) {
             return Ro[element(x + 1, y + 1, z + 1)];
         }
 
-        inline int getSizeX() {
+        int getSizeX() {
             return size[0] - 2;
         }
 
-        inline int getSizeY() {
+        int getSizeY() {
             return size[1] - 2;
         }
 
-        inline int getSizeZ() {
+        int getSizeZ() {
             return size[2] - 2;
         }
 
-        inline void setBoundaryFi(std::vector<FiBoundary*>& bs) {
+        void setBoundaryFi(std::vector<FiBoundary*>& bs) {
             for(auto b : bs) {
                 int64_t bid[3];
 
@@ -469,7 +462,7 @@ class Mesh {
             }
         }
 
-        inline void setBoundaryParticle(std::vector<ParticleBoundary*>& bs) {
+        void setBoundaryParticle(std::vector<ParticleBoundary*>& bs) {
             for(auto b : bs) {
                 int64_t bid[3];
                 bid[0] = b->id[0];
@@ -769,7 +762,7 @@ class Mesh {
         }
 
 
-        inline void setBoundaryRo(std::vector<RoBoundary*>& bs) {
+        void setBoundaryRo(std::vector<RoBoundary*>& bs) {
             for(auto b : bs) {
                 int64_t bid[3];
                 bid[0] = b->id[0];
@@ -1040,7 +1033,7 @@ class Mesh {
             }
         }
 
-        inline double processPotential() {
+        double processPotential() {
             double max = 0;
             int ib = (side[4] ? 2 : 1);
             int ie = (side[5] ? size[0] - 2 : size[0] - 1);
@@ -1049,7 +1042,6 @@ class Mesh {
             int kb = (side[0] ? 2 : 1);
             int ke = (side[1] ? size[2] - 2 : size[2] - 1);
 
-            Mesh* c = copy();
             double hx2 = 1. / (hx * hx);
             double hy2 = 1. / (hy * hy);
             double hz2 = 1. / (hz * hz);
@@ -1057,13 +1049,13 @@ class Mesh {
             for(int i = ib; i < ie; i++)
                 for(int j = jb; j < je; j++)
                     for(int k = kb; k < ke; k++) {
-                        double Fi0 = c->Fi[element(i, j, k)];
-                        double Fi1 = c->Fi[element(i - 1, j, k)];
-                        double Fi2 = c->Fi[element(i + 1, j, k)];
-                        double Fi3 = c->Fi[element(i, j - 1, k)];
-                        double Fi4 = c->Fi[element(i, j + 1, k)];
-                        double Fi5 = c->Fi[element(i, j, k - 1)];
-                        double Fi6 = c->Fi[element(i, j, k + 1)];
+                        double Fi0 = Fi[element(i, j, k)];
+                        double Fi1 = Fi[element(i - 1, j, k)];
+                        double Fi2 = Fi[element(i + 1, j, k)];
+                        double Fi3 = Fi[element(i, j - 1, k)];
+                        double Fi4 = Fi[element(i, j + 1, k)];
+                        double Fi5 = Fi[element(i, j, k - 1)];
+                        double Fi6 = Fi[element(i, j, k + 1)];
 
                         Fi[element(i, j, k)] =  coef * ((Fi1 + Fi2) * hx2 +
                                                (Fi3 + Fi4) * hy2 +
@@ -1075,7 +1067,6 @@ class Mesh {
                         if(max < nmax)
                             max = nmax;
                     }
-            delete c;
             return max;
         }
 
@@ -1122,7 +1113,7 @@ class Mesh {
             for(int _ = 0; _ < size[0]*size[1]*size[2]; ++_) Ro[_] = 0;
 
             std::ofstream out(std::to_string(id[0]) + "-density");
-            for(auto p : ps) { 
+            for(auto &p : ps) {
                 sx = p->x()/hx - 0.5; i = sx; sx = sx - i;
                 sy = p->y()/hy - 0.5; j = sy; sy = sy - j;
                 sz = p->z()/hz - 0.5; k = sz; sz = sz - k;
@@ -1143,20 +1134,12 @@ class Mesh {
             for(int _ = 0; _ < size[0]*size[1]*size[2]; ++_) Ro[_] *= s;
         }
 
-        ParticleBoundary* moveParticles() {
-            ParticleBoundary* boundary = new ParticleBoundary();
-            std::vector<Particle*> remove;
-
-            for(auto p : ps) {
+        void fillVelocities() {
+            for(auto &p : ps) {
                 double xa,ya,za,xb,yb,zb;
                 int ia,ka,la,ib,kb,lb;
                 double fx, fy, fz;
                 double x,y,z,u,v,w;
-
-//                double du,dv,dw;
-//                const double hxt = hx/tau;
-//                const double hyt = hy/tau;
-//                const double hzt = hz/tau;
 
                 x=p->x();
                 y=p->y();
@@ -1172,12 +1155,12 @@ class Mesh {
                 xa=xb-0.5;
                 ya=yb-0.5;
                 za=zb-0.5;
-                ib=xb; xb=xb-ib; ib++;
-                kb=yb; yb=yb-kb; kb++;
-                lb=zb; zb=zb-lb; lb++;
-                ia=xa; xa=xa-ia; ia++;
-                ka=ya; ya=ya-ka; ka++;
-                la=za; za=za-la; la++;
+                ib=xb; xb=xb-ib;
+                kb=yb; yb=yb-kb;
+                lb=zb; zb=zb-lb;
+                ia=xa; xa=xa-ia;
+                ka=ya; ya=ya-ka;
+                la=za; za=za-la;
 
 
                 fx=(1-xb)*((1-ya)*((1-za)*Fx[element(ib, ka, la)]+za*Fx[element(ib, ka, la+1)])+
@@ -1195,13 +1178,72 @@ class Mesh {
                        xa *((1-ya)*((1-zb)*Fz[element(ia+1, ka, lb)]+zb*Fz[element(ia+1, ka, lb+1)])+
                                ya *((1-zb)*Fz[element(ia+1, ka+1, lb)]+zb*Fz[element(ia+1, ka+1, lb+1)]));
 
-//                du=tau*fx; if (fabs(du)<=hxt) u+=du; else { u+=(1-2*std::signbit(du))*hxt;  }
-//                dv=tau*fy; if (fabs(dv)<=hyt) v+=dv; else { v+=(1-2*std::signbit(dv))*hyt;  }
-//                dw=tau*fz; if (fabs(dw)<=hzt) w+=dw; else { w+=(1-2*std::signbit(dw))*hzt;  }
-
                 u += tau*fx;
                 v += tau*fy;
                 w += tau*fz;
+
+                p->vx(-u * 100);
+                p->vy(-v * 100);
+                p->vz(-w * 100);
+            }
+        }
+
+        ParticleBoundary* moveParticles(int iteration) {
+            ParticleBoundary* boundary = new ParticleBoundary();
+            std::vector<Particle*> remove;
+            std::ofstream out(std::to_string(id[0]) + std::to_string(iteration) + "-particles");
+
+            for(std::vector<Particle*>::iterator p = ps.begin(); p != ps.end(); ++p) {
+                double xa,ya,za,xb,yb,zb;
+                int ia,ka,la,ib,kb,lb;
+                double fx, fy, fz;
+                double x,y,z,u,v,w;
+
+                double du,dv,dw;
+                const double hxt = hx/tau;
+                const double hyt = hy/tau;
+                const double hzt = hz/tau;
+
+                x=(*p)->x();
+                y=(*p)->y();
+                z=(*p)->z();
+                u=(*p)->vx();
+                v=(*p)->vy();
+                w=(*p)->vz();
+
+
+                xb=x/hx;
+                yb=y/hy;
+                zb=z/hz;
+                xa=xb-0.5;
+                ya=yb-0.5;
+                za=zb-0.5;
+                ib=xb; xb=xb-ib;
+                kb=yb; yb=yb-kb;
+                lb=zb; zb=zb-lb;
+                ia=xa; xa=xa-ia;
+                ka=ya; ya=ya-ka;
+                la=za; za=za-la;
+
+
+                fx=(1-xb)*((1-ya)*((1-za)*Fx[element(ib, ka, la)]+za*Fx[element(ib, ka, la+1)])+
+                               ya *((1-za)*Fx[element(ib, ka+1, la)]+za*Fx[element(ib, ka+1, la+1)]))+
+                       xb *((1-ya)*((1-za)*Fx[element(ib+1, ka, la)]+za*Fx[element(ib+1, ka, la+1)])+
+                               ya *((1-za)*Fx[element(ib+1, ka+1, la)]+za*Fx[element(ib+1, ka+1, la+1)]));
+
+                fy=(1-xa)*((1-yb)*((1-za)*Fy[element(ia, kb, la)]+za*Fy[element(ia, kb, la+1)])+
+                               yb *((1-za)*Fy[element(ia, kb+1, la)]+za*Fy[element(ia, kb+1, la+1)]))+
+                       xa *((1-yb)*((1-za)*Fy[element(ia+1, kb, la)]+za*Fy[element(ia+1, kb, la+1)])+
+                               yb *((1-za)*Fy[element(ia+1, kb+1, la)]+za*Fy[element(ia+1, kb+1, la+1)]));
+
+                fz=(1-xa)*((1-ya)*((1-zb)*Fz[element(ia, ka, lb)]+zb*Fz[element(ia, ka, lb+1)])+
+                               ya *((1-zb)*Fz[element(ia, ka+1, lb)]+zb*Fz[element(ia, ka+1, lb+1)]))+
+                       xa *((1-ya)*((1-zb)*Fz[element(ia+1, ka, lb)]+zb*Fz[element(ia+1, ka, lb+1)])+
+                               ya *((1-zb)*Fz[element(ia+1, ka+1, lb)]+zb*Fz[element(ia+1, ka+1, lb+1)]));
+
+                du=tau*fx; if (fabs(du)<=hxt) u+=du; else { u+=(1-2*std::signbit(du))*hxt;  }
+                dv=tau*fy; if (fabs(dv)<=hyt) v+=dv; else { v+=(1-2*std::signbit(dv))*hyt;  }
+                dw=tau*fz; if (fabs(dw)<=hzt) w+=dw; else { w+=(1-2*std::signbit(dw))*hzt;  }
 
                 x+=tau*u;
                 y+=tau*v;
@@ -1270,116 +1312,118 @@ class Mesh {
                     }
                 }
 
-                p->x(x);
-                p->y(y);
-                p->z(z);
-                p->vx(u);
-                p->vy(v);
-                p->vz(w);
+                out << "(" << (*p)->x() << ", " << (*p)->y() << ", " << (*p)->z() << ") -> " << "(" << x << ", " << y << ", " << z << ")" << std::endl;
+
+                (*p)->x(x);
+                (*p)->y(y);
+                (*p)->z(z);
+                (*p)->vx(u);
+                (*p)->vy(v);
+                (*p)->vz(w);
 
                 if(s[XZ1] && s[XY1] && s[YZ1]) {
-                    boundary->XZ1XY1YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1XY1YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1] && s[XY2] && s[YZ1]) {
-                    boundary->XZ1XY2YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1XY2YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[XY1] && s[YZ1]) {
-                    boundary->XZ2XY1YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2XY1YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[XY2] && s[YZ1]) {
-                    boundary->XZ1XY1YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1XY1YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1] && s[XY1] && s[YZ2]) {
-                    boundary->XZ1XY1YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1XY1YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1] && s[XY2] && s[YZ2]) {
-                    boundary->XZ1XY2YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1XY2YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[XY1] && s[YZ2]) {
-                    boundary->XZ2XY1YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2XY1YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[XY2] && s[YZ2]) {
-                    boundary->XZ2XY2YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2XY2YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1] && s[XY1]) {
-                    boundary->XZ1XY1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1XY1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1] && s[XY2]) {
-                    boundary->XZ1XY2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1XY2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1] && s[YZ1]) {
-                    boundary->XZ1YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1] && s[YZ2]) {
-                    boundary->XZ1YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[XY1]) {
-                    boundary->XZ2XY1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2XY1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[XY2]) {
-                    boundary->XZ2XY2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2XY2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[YZ1]) {
-                    boundary->XZ2YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[YZ2]) {
-                    boundary->XZ2YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XY1] && s[YZ1]) {
-                    boundary->XY1YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XY1YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XY1] && s[YZ2]) {
-                    boundary->XY1YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XY1YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XY2] && s[YZ1]) {
-                    boundary->XY2YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XY2YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XY2] && s[YZ2]) {
-                    boundary->XY2YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XY2YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XY1]) {
-                    boundary->XY1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XY1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XY2]) {
-                    boundary->XY2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XY2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ1]) {
-                    boundary->XZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[XZ2]) {
-                    boundary->XZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->XZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[YZ1]) {
-                    boundary->YZ1.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->YZ1.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
                 else if(s[YZ2]) {
-                    boundary->YZ2.push_back(p->copy());
-                    remove.push_back(p);
+                    boundary->YZ2.push_back((*p)->copy());
+                    remove.push_back((*p));
                 }
             }
 
@@ -1396,6 +1440,7 @@ class Mesh {
             boundary->id[1] = id[1];
             boundary->id[2] = id[2];
 
+            out.close();
             return boundary;
 
         }

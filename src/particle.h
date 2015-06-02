@@ -7,31 +7,38 @@ class Particle {
 private:
     double _x, _y, _z;
     double _vx, _vy, _vz;
-    double _m;
 
+    Particle() {}
 public:
-    Particle(double __x, double __y, double __z, double __m): _x(__x), _y(__y), _z(__z), _vx(0), _vy(0), _vz(0), _m(__m) {}
-    Particle(double __x, double __y, double __z): _x(__x), _y(__y), _z(__z), _vx(0), _vy(0), _vz(0), _m(1) {}
-    Particle(): _x(0), _y(0), _z(0), _vx(0), _vy(0), _vz(0), _m(1) {}
+    Particle(double __x, double __y, double __z)
+    {
+        _x = __x;
+        _y = __y;
+        _z = __z;
+        _vx = 0;
+        _vy = 0;
+        _vz = 0;
+    }
 
-    inline double m() { return _m; }
-    inline double x() { return _x; }
-    inline double y() { return _y; }
-    inline double z() { return _z; }
-    inline double vx() { return _vx; }
-    inline double vy() { return _vy; }
-    inline double vz() { return _vz; }
+    ~Particle() {
+    }
 
-    inline void m(double __m) { _m = __m; }
-    inline void x(double __x) { _x = __x; }
-    inline void y(double __y) { _y = __y; }
-    inline void z(double __z) { _z = __z; }
-    inline void vx(double __vx) { _vx = __vx; }
-    inline void vy(double __vy) { _vy = __vy; }
-    inline void vz(double __vz) { _vz = __vz; }
+    double x() { return _x; }
+    double y() { return _y; }
+    double z() { return _z; }
+    double vx() { return _vx; }
+    double vy() { return _vy; }
+    double vz() { return _vz; }
 
-    inline Particle* copy() {
-        Particle* r = new Particle(_x, _y, _z, _m);
+    void x(double __x) { _x = __x; }
+    void y(double __y) { _y = __y; }
+    void z(double __z) { _z = __z; }
+    void vx(double __vx) { _vx = __vx; }
+    void vy(double __vy) { _vy = __vy; }
+    void vz(double __vz) { _vz = __vz; }
+
+    Particle* copy() {
+        Particle* r = new Particle(_x, _y, _z);
         r->vx(_vx);
         r->vy(_vy);
         r->vz(_vz);
@@ -40,20 +47,19 @@ public:
 
     void serialize(ts::Arc* arc) {
       ts::Arc& a = *arc;
-      a << _x << _y << _z << _vx << _vy << _vz << _m;
+      a << _x << _y << _z << _vx << _vy << _vz;
     }
 
     static Particle* deserialize(ts::Arc* arc) {
       ts::Arc& a = *arc;
-      double x, y, z, vx, vy, vz, m;
+      double x, y, z, vx, vy, vz;
       a >> x;
       a >> y;
       a >> z;
       a >> vx;
       a >> vy;
       a >> vz;
-      a >> m;
-      Particle* r = new Particle(x, y, z, m);
+      Particle* r = new Particle(x, y, z);
       r->vx(vx);
       r->vy(vy);
       r->vz(vz);

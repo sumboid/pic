@@ -4,8 +4,8 @@ AM_SILENT_RULES([yes])
 
 AC_PROG_CXX([mpic++])
 
-CXXFLAGS="-O0 -g -std=c++11 -I/home/yoba/.local/ts/include -Wall -Wextra -Werror"
-LDFLAGS="-L/home/yoba/.local/ts/lib"
+CXXFLAGS="-O0 -g -std=c++11 -I/home/yoba/.local/ts-ng/include -Wall -Wextra -Werror"
+LDFLAGS="-L/home/yoba/.local/ts-ng/lib"
 LIBS="-lts"
 
 AC_CONFIG_FILES([Makefile])

@@ -1,4 +1,4 @@
-#include <ts/system/System.h>
+#include <ts-ng/system/System.h>
 #include "poisson-fragment.h"
 #include "mesh.h"
 #include <tuple>
@@ -259,8 +259,8 @@ Fragment* createFragment(int cur, int all, int size) {
     Mesh* mesh = new Mesh(s, ny, nz);
     mesh->setID(cur, 0, 0);
     mesh->setSizes(sx, sy, sz, nx, ny, nz);
+
     fillFi(mesh, b, e);
-    mesh->printPhi(100);
     fillParticles(mesh, b, e);
 
 
