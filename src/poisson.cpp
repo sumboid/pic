@@ -11,9 +11,9 @@ using ts::system::System;
 using ts::type::ID;
 
 namespace {
-    const int nx = 22;
-    const int ny = 22;
-    const int nz = 22;
+    const int nx = 32;
+    const int ny = 32;
+    const int nz = 32;
 
     const double sx = 4;
     const double sy = 4;
