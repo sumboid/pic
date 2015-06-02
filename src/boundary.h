@@ -555,6 +555,37 @@ struct ParticleBoundary {
 
         return r;
     }
+
+    void merge(ParticleBoundary* b) {
+        for(auto i : b->XY1){ XY1.push_back(i->copy()); }
+        for(auto i : b->XY2){ XY2.push_back(i->copy()); }
+        for(auto i : b->XZ1){ XZ1.push_back(i->copy()); }
+        for(auto i : b->XZ2){ XZ2.push_back(i->copy()); }
+        for(auto i : b->YZ1){ YZ1.push_back(i->copy()); }
+        for(auto i : b->YZ2){ YZ2.push_back(i->copy()); }
+
+        for(auto i : b->XZ1XY1){ XZ1XY1.push_back(i->copy()); }
+        for(auto i : b->XZ1XY2){ XZ1XY2.push_back(i->copy()); }
+        for(auto i : b->XZ1YZ1){ XZ1YZ1.push_back(i->copy()); }
+        for(auto i : b->XZ1YZ2){ XZ1YZ2.push_back(i->copy()); }
+        for(auto i : b->XZ2XY1){ XZ2XY1.push_back(i->copy()); }
+        for(auto i : b->XZ2XY2){ XZ2XY2.push_back(i->copy()); }
+        for(auto i : b->XZ2YZ1){ XZ2YZ1.push_back(i->copy()); }
+        for(auto i : b->XZ2YZ2){ XZ2YZ2.push_back(i->copy()); }
+        for(auto i : b->XY1YZ1){ XY1YZ1.push_back(i->copy()); }
+        for(auto i : b->XY1YZ2){ XY1YZ2.push_back(i->copy()); }
+        for(auto i : b->XY2YZ1){ XY2YZ1.push_back(i->copy()); }
+        for(auto i : b->XY2YZ2){ XY2YZ2.push_back(i->copy()); }
+
+        for(auto i : b->XZ1XY1YZ1){ XZ1XY1YZ1.push_back(i->copy()); }
+        for(auto i : b->XZ1XY2YZ1){ XZ1XY2YZ1.push_back(i->copy()); }
+        for(auto i : b->XZ2XY1YZ1){ XZ2XY1YZ1.push_back(i->copy()); }
+        for(auto i : b->XZ2XY2YZ1){ XZ2XY2YZ1.push_back(i->copy()); }
+        for(auto i : b->XZ1XY1YZ2){ XZ1XY1YZ2.push_back(i->copy()); }
+        for(auto i : b->XZ1XY2YZ2){ XZ1XY2YZ2.push_back(i->copy()); }
+        for(auto i : b->XZ2XY1YZ2){ XZ2XY1YZ2.push_back(i->copy()); }
+        for(auto i : b->XZ2XY2YZ2){ XZ2XY2YZ2.push_back(i->copy()); }
+    }
 };
 #endif // BOUNDARY
 

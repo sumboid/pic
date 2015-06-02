@@ -74,15 +74,29 @@ private:
   RoBoundary* Ro;
   ParticleBoundary* particles;
 
+  double* RoMesh;
+  uint64_t msize;
+
   bool fib;
   bool rob;
   bool pab;
 
+  bool rom;
+
   enum State {
       MOVE = 0,
-      DENSITY = 1,
-      POTENTIAL = 2,
-      FORCE = 3
+      LU_MOVE = 1,
+      GU_MOVE = 2,
+
+      DENSITY = 3,
+      MU_DENSITY = 4,
+      GU_DENSITY = 5,
+      SU_DENSITY = 6,
+
+      POTENTIAL = 7,
+      SU_POTENTIAL = 8,
+
+      FORCE = 9
   };
 
   int potential_c;
@@ -90,10 +104,9 @@ private:
   State state;
 
   void next() {
-      if(state == MOVE) state = DENSITY;
-      else if(state == DENSITY) state = POTENTIAL;
-      else if(state == POTENTIAL) state = FORCE;
-      else if(state == FORCE) state = MOVE;
+      int cur = static_cast<int>(state);
+      if(cur == 9) state = static_cast<State>(0);
+      else state = static_cast<State>(state + 1);
   }
 
 
@@ -102,6 +115,7 @@ public:
     fib = false;
     rob = false;
     pab = false;
+    rom = false;
 
     state = DENSITY;
     potential_c = 0;
@@ -119,41 +133,43 @@ public:
 
   void setMesh(Mesh* _mesh) {
     mesh = _mesh;
+    msize = mesh->rsize();
   }
 
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
-      std::cout << id().c[0] << ": State: (" << iteration()  << ", " << progress()  << ")" << std::endl;
+      std::cout << id().c[0] << ": State: (" << iteration()  << ", " << progress()  << ", " << fs.size() <<  ")" << std::endl;
 
       if(state == DENSITY) {
-          std::vector<ParticleBoundary*> bs;
-          for(auto f: fs) {
-              Fragment* rf = reinterpret_cast<Fragment*>(f);
-              bs.push_back(rf->particles);
-          }
-
-          mesh->setBoundaryParticle(bs);
-
           mesh->processDensity();
-
-          rob = true;
-          Ro = mesh->getRoBoundary();
-          saveState();
-          setUpdate();
-          setNeighbours(iteration(), progress());
+          if(isVirtual()) {
+              RoMesh =  mesh->getRoM();
+              rom = true;
+              saveState();
+              setUpdate();
+          }
+          if(isMaster()) {
+              setVNeighbours(iteration(), progress());
+          }
           next();
-          return;
-      }
-      else if(state == POTENTIAL) {
-          if(potential_c != 0) {
-              std::vector<FiBoundary*> bs;
-              for(auto f : fs) { //it's ok no neighbours here
+      } else if(state == MU_DENSITY) {
+          if(isMaster()) { //add it
+              for(auto f: fs) {
                   Fragment* rf = reinterpret_cast<Fragment*>(f);
-                  bs.push_back(rf->Fi);
+                  mesh->updateRoM(rf->RoMesh, false);
               }
+          }
+          if(!isVirtual()) {
+              Ro = mesh->getRoBoundary();
+              rob = true;
+              saveState();
+              setUpdate();
+              setNeighbours(iteration(), progress());
+          }
+          next();
+      } else if(state == GU_DENSITY) {
+          if(!isVirtual()) {
 
-              mesh->setBoundaryFi(bs);
-          } else {
               std::vector<RoBoundary*> bs;
               for(auto f : fs) { //it's ok no neighbours here
                   Fragment* rf = reinterpret_cast<Fragment*>(f);
@@ -161,56 +177,68 @@ public:
               }
               mesh->setBoundaryRo(bs);
               mesh->printRo(iteration());
+
           }
-
-          std::cout << "GLOBAL MAX: " << max <<std::endl;
-
-          if(max > 1.0e-4 || potential_c == 0) {
-              max = mesh->processPotential();
-
-              fib = true;
-              Fi = mesh->getFiBoundary();
-
+          if(isMaster()) {
+              RoMesh = mesh->getRoM();
+              rom = true;
+              saveState();
+              setVUpdate();
+          }
+          if(isVirtual()) {
+              setNeighbours(iteration(), progress());
+          }
+          next();
+      } else if(state == SU_DENSITY) {
+          if(isVirtual()) {
+              for(auto f: fs) {
+                  Fragment* rf = reinterpret_cast<Fragment*>(f);
+                  mesh->updateRoM(rf->RoMesh, true);
+              }
+          }
+          next();
+      } else if(state == POTENTIAL) {
+          next();
+      } else if(state == SU_POTENTIAL) {
+          next();
+      } else if(state == FORCE) {
+          mesh->uberprocessForces();
+          next();
+      } else if(state == MOVE) {
+          particles = mesh->moveParticles(iteration());
+          if(isVirtual()) {
               saveState();
               setUpdate();
-              setReduce();
-              setNeighbours(iteration(), progress());
-              ++potential_c;
-          } else {
-              next();
-              potential_c = 0;
-              mesh->printPhi(iteration());
-              max = 100;
           }
-
-          return;
-      }
-      else if(state == FORCE) {
-          std::vector<FiBoundary*> bs;
-          for(auto f : fs) {
-              Fragment* rf = reinterpret_cast<Fragment*>(f);
-              bs.push_back(rf->Fi);
-          }
-
-          mesh->setBoundaryFi(bs);
-
-          mesh->uberprocessForces();
-          if(iteration() == 0) {
-             // mesh->fillVelocities();
+          if(isMaster()) {
+              setVNeighbours(iteration(), progress());
           }
           next();
-          return;
-      }
-      else if(state == MOVE) {
-          particles = mesh->moveParticles(iteration());
-          pab = true;
-
-          saveState();
-          setUpdate();
-          setNeighbours(iteration(), progress());
+      } else if(state == LU_MOVE) {
+          if(isMaster()) {
+              for(auto f: fs) {
+                  Fragment* rf = reinterpret_cast<Fragment*>(f);
+                  particles->merge(rf->particles);
+              }
+          }
+          if(!isVirtual()) {
+              pab = true;
+              saveState();
+              setUpdate();
+              setNeighbours(iteration(), progress());
+          }
+          next();
+      } else if(state == GU_MOVE) {
+          if(!isVirtual()) {
+             std::vector<ParticleBoundary*> bs;
+             for(auto f: fs) {
+                 Fragment* rf = reinterpret_cast<Fragment*>(f);
+                 bs.push_back(rf->particles);
+             }
+             mesh->setBoundaryParticle(bs);
+          }
           next();
           nextIteration();
-          return;
       }
   }
 
@@ -231,6 +259,7 @@ public:
   Fragment* getBoundary() override {
     Fragment* fragment = new Fragment(id());
     fragment->setBoundary();
+    fragment->msize = msize;
 
     if(fib == true) {
         fragment->fib = true;
@@ -253,6 +282,13 @@ public:
         pab = false;
         delete particles;
     }
+    if(rom == true) {
+        fragment->rom = true;
+        memcpy(fragment->RoMesh, RoMesh, msize * sizeof(double));
+
+        rom = false;
+        delete RoMesh;
+    }
 
     return fragment;
   }
@@ -266,6 +302,8 @@ public:
     a << fib;
     a << rob;
     a << pab;
+    a << rom;
+    a << msize;
 
     if(fib == true) {
         Fi->serialize(arc);
@@ -275,6 +313,10 @@ public:
     }
     else if(pab == true) {
         particles->serialize(arc);
+    }
+    else if(rom == true) {
+        for(uint64_t i = 0; i < msize; ++i)
+            a << RoMesh[i];
     }
   }
 
@@ -290,6 +332,8 @@ public:
     a >> f->fib;
     a >> f->rob;
     a >> f->pab;
+    a >> f->rom;
+    a >> f->msize;
 
     if(f->fib == true) {
         f->Fi = FiBoundary::deserialize(arc);
@@ -299,6 +343,12 @@ public:
     }
     else if(f->pab == true) {
         f->particles = ParticleBoundary::deserialize(arc);
+    }
+    else if(f->rom == true) {
+        f->RoMesh = new double[f->msize];
+
+        for(uint64_t i = 0; i < f->msize; ++i)
+            a >> f->RoMesh[i];
     }
 
     return f;
@@ -338,6 +388,8 @@ public:
         f->fib = fib;
         f->rob = rob;
         f->pab = pab;
+        f->rom = rom;
+        f->msize = msize;
 
         if(fib == true) {
             f->Fi = Fi->copy();
@@ -347,6 +399,9 @@ public:
         }
         else if(pab == true) {
             f->particles = particles->copy();
+        }
+        else if(rom == true) {
+            memcpy(f->RoMesh, RoMesh, msize* sizeof(double));
         }
 
         return f;

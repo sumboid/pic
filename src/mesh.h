@@ -81,6 +81,22 @@ class Mesh {
             coef = 0.5 * w / (hx2 + hy2 + hz2);
         }
 
+        Mesh* split() {
+            Mesh* s = copy();
+            std::vector<Particle*> remove;
+
+            uint64_t size = ps.size() / 2;
+
+            for(uint64_t i = 0; i < size; ++i) {
+                s->ps.push_back(ps[i]->copy());
+                delete ps[i];
+            }
+
+            ps.erase(ps.begin(), ps.begin() + size);
+
+            return s;
+        }
+
         Mesh(ts::Arc* arc) {
             ts::Arc& a = *arc;
             a >> size[0];
@@ -89,6 +105,9 @@ class Mesh {
 
             Fi = new double[size[0] * size[1] * size[2]];
             Ro = new double[size[0] * size[1] * size[2]];
+            Fx = new double[size[0] * size[1] * size[2]];
+            Fy = new double[size[0] * size[1] * size[2]];
+            Fz = new double[size[0] * size[1] * size[2]];
 
             a >> side[0];
             a >> side[1];
@@ -103,10 +122,62 @@ class Mesh {
 
             a >> w;
             a >> coef;
+            a >> am;
+            a >> tau;
 
             for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
                 a >> Fi[i];
                 a >> Ro[i];
+                a >> Fx[i];
+                a >> Fy[i];
+                a >> Fz[i];
+            }
+
+            int particles = 0;
+            a >> particles;
+            if(particles == 1) {
+                uint64_t number;
+                a >> number;
+                for(uint64_t i = 0; i < number; ++i) {
+                    ps.push_back(Particle::deserialize(arc));
+                }
+            }
+        }
+
+        void serialize(ts::Arc* arc) {
+            ts::Arc& a = *arc;
+            a << size[0] << size[1] << size[2];
+            a << side[0] << side[1] << side[2] <<
+                 side[3] << side[4] << side[5];
+
+            a << hx << hy << hz << w << coef;
+
+            for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
+                a << Fi[i] << Ro[i] << Fx[i] << Fy[i] << Fz[i];
+            }
+
+            int particles = 0;
+            a << particles;
+        }
+
+        void serializeWithParticles(ts::Arc* arc) {
+            ts::Arc& a = *arc;
+            a << size[0] << size[1] << size[2];
+            a << side[0] << side[1] << side[2] <<
+                 side[3] << side[4] << side[5];
+
+            a << hx << hy << hz << w << coef;
+
+            for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
+                a << Fi[i] << Ro[i] << Fx[i] << Fy[i] << Fz[i];
+            }
+
+            int particles = 1;
+            a << particles;
+            uint64_t number = ps.size();
+            a << number;
+            for(auto &i: ps) {
+                i->serialize(arc);
             }
         }
 
@@ -153,17 +224,63 @@ class Mesh {
            c->id[0] = id[0];
            c->id[1] = id[1];
            c->id[2] = id[2];
+
+           c->hx = hx;
+           c->hy = hy;
+           c->hz = hz;
+
+           c->w = w;
+           c->coef = coef;
+           c->am = am;
+           c->tau = tau;
+
            c->setSides(side[0],
-                         side[1],
-                         side[2],
-                         side[3],
-                         side[4],
-                         side[5]);
+                       side[1],
+                       side[2],
+                       side[3],
+                       side[4],
+                       side[5]);
+
            memcpy(c->Fi, Fi, size[0] * size[1] * size[2] * sizeof(double));
            memcpy(c->Ro, Ro, size[0] * size[1] * size[2] * sizeof(double));
-           memcpy(c->Fx, Fx, (size[0] - 1) * (size[1] - 1) * (size[2] - 1) * sizeof(double));
-           memcpy(c->Fy, Fy, (size[0] - 1) * (size[1] - 1) * (size[2] - 1) * sizeof(double));
-           memcpy(c->Fz, Fz, (size[0] - 1) * (size[1] - 1) * (size[2] - 1) * sizeof(double));
+           memcpy(c->Fx, Fx, size[0] * size[1] * size[2] * sizeof(double));
+           memcpy(c->Fy, Fy, size[0] * size[1] * size[2] * sizeof(double));
+           memcpy(c->Fz, Fz, size[0] * size[1] * size[2] * sizeof(double));
+
+           return c;
+        }
+
+        Mesh* copyWithParticles() {
+           Mesh* c = new Mesh(size[0] - 2, size[1] - 2, size[2] - 2);
+           c->id[0] = id[0];
+           c->id[1] = id[1];
+           c->id[2] = id[2];
+
+           c->hx = hx;
+           c->hy = hy;
+           c->hz = hz;
+
+           c->w = w;
+           c->coef = coef;
+           c->am = am;
+           c->tau = tau;
+
+           c->setSides(side[0],
+                       side[1],
+                       side[2],
+                       side[3],
+                       side[4],
+                       side[5]);
+
+           memcpy(c->Fi, Fi, size[0] * size[1] * size[2] * sizeof(double));
+           memcpy(c->Ro, Ro, size[0] * size[1] * size[2] * sizeof(double));
+           memcpy(c->Fx, Fx, size[0] * size[1] * size[2] * sizeof(double));
+           memcpy(c->Fy, Fy, size[0] * size[1] * size[2] * sizeof(double));
+           memcpy(c->Fz, Fz, size[0] * size[1] * size[2] * sizeof(double));
+
+           for(auto &i : ps) {
+               c->ps.push_back(i->copy());
+           }
 
            return c;
         }
@@ -1430,7 +1547,7 @@ class Mesh {
             for(auto r : remove) {
                 auto it = std::find(ps.begin(), ps.end(), r);
                 if(it != ps.end()) {
-                    std::cout << id[0] << ": REMOVE PARTICLE" << std::endl;
+                   // std::cout << id[0] << ": REMOVE PARTICLE" << std::endl;
                     delete *it;
                     ps.erase(it);
                 }
@@ -1540,17 +1657,42 @@ class Mesh {
             return result;
         }
 
-        void serialize(ts::Arc* arc) {
-            ts::Arc& a = *arc;
-            a << size[0] << size[1] << size[2];
-            a << side[0] << side[1] << side[2] <<
-                 side[3] << side[4] << side[5];
-
-            a << hx << hy << hz << w << coef;
-
-            for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
-                a << Fi[i] << Ro[i];
+        void updateRoM(double* aRo, bool clear) {
+            if(clear) {
+                for(int i = 0; i < size[0] * size[1] * size[2]; ++i){
+                    Ro[i] = aRo[i];
+                }
+            } else {
+                for(int i = 0; i < size[0] * size[1] * size[2]; ++i){
+                    Ro[i] += aRo[i];
+                }
             }
+        }
+
+        void updatePhiM(double* aPhi) {
+            for(int i = 0; i < size[0] * size[1] * size[2]; ++i){
+                Fi[i] = aPhi[i];
+            }
+        }
+
+        double* getRoM() {
+            double* r = new double[size[0] * size[1] * size[2]];
+            for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
+                r[i] = Ro[i];
+            }
+            return r;
+        }
+
+        double* getFiM() {
+            double* r = new double[size[0] * size[1] * size[2]];
+            for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
+                r[i] = Fi[i];
+            }
+            return r;
+        }
+
+        uint64_t rsize() {
+            return size[0] * size[1] * size[2];
         }
 };
 
