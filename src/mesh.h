@@ -99,6 +99,7 @@ class Mesh {
 
         Mesh(ts::Arc* arc) {
             ts::Arc& a = *arc;
+            a >> id[0] >> id[1] >> id[2];
             a >> size[0];
             a >> size[1];
             a >> size[2];
@@ -146,11 +147,12 @@ class Mesh {
 
         void serialize(ts::Arc* arc) {
             ts::Arc& a = *arc;
+            a << id[0] << id[1] << id[2];
             a << size[0] << size[1] << size[2];
             a << side[0] << side[1] << side[2] <<
                  side[3] << side[4] << side[5];
 
-            a << hx << hy << hz << w << coef;
+            a << hx << hy << hz << w << coef << am << tau;
 
             for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
                 a << Fi[i] << Ro[i] << Fx[i] << Fy[i] << Fz[i];
@@ -162,11 +164,12 @@ class Mesh {
 
         void serializeWithParticles(ts::Arc* arc) {
             ts::Arc& a = *arc;
+            a << id[0] << id[1] << id[2];
             a << size[0] << size[1] << size[2];
             a << side[0] << side[1] << side[2] <<
                  side[3] << side[4] << side[5];
 
-            a << hx << hy << hz << w << coef;
+            a << hx << hy << hz << w << coef << am << tau;
 
             for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
                 a << Fi[i] << Ro[i] << Fx[i] << Fy[i] << Fz[i];
@@ -187,10 +190,13 @@ class Mesh {
             delete[] Fx;
             delete[] Fy;
             delete[] Fz;
+            for(auto p: ps) {
+                delete p;
+            }
         }
 
         void printRo(int iteration) {
-            std::ofstream file(std::to_string(id[0]) + "-" + std::to_string(iteration));
+            std::ofstream file(std::to_string(id[0]) + "-" + std::to_string(id[1]) + "-" + std::to_string(iteration) + ".density");
             for(int i = 1; i < size[0] - 1; ++i) {
                 for(int j = 1; j < size[1] - 1; ++j) {
                     double sum = 0;
@@ -1382,47 +1388,47 @@ class Mesh {
                 bool s[6]; //xy1 xy2 xz1 xz2 yz1 yz2
                 for(int i = 0; i < 6; ++i) s[i] = false;
 
-                if (ix == 0) {
+                if (ix <= 0) {
                     if(side[4]) {
-                        if(x < 0) { u=-u; x=-x; }
+                        if(x < 1) { u=-u; x=-x; }
                     } else {
                        s[4] = true;
                     }
                 }
-                if (iy == 0) {
+                if (iy <= 0) {
                     if(side[2]) {
-                       if(y < 0) { v=-v; y=-y; }
+                       if(y < 1) { v=-v; y=-y; }
                     } else {
                        s[2] = true;
                     }
                 }
-                if (iz == 0) {
+                if (iz <= 0) {
                     if(side[0]) {
-                       if(z < 0) { z=-z; w=-w; }
+                       if(z < 1) { z=-z; w=-w; }
                     } else {
                        s[0] = true;
                     }
                 }
 
-                if (ix >= size[0] - 1) {
+                if (ix >= size[0]) {
                     if(side[5]) {
-                       if(x > size[0] * hx) { x = 2 * size[0] * hx - x; u=-u; }
+                       if(x > (size[0] - 1) * hx) { x = 2 * size[0] * hx - x; u=-u; }
                     } else {
                        x = x - (size[0] - 1) * hx;
                        s[5] = true;
                     }
                 }
-                if (iy >= size[1] - 1) {
+                if (iy >= size[1]) {
                     if(side[3]) {
-                       if(y > size[1] * hy) { y = 2 * size[1] * hy - y; v=-v; }
+                       if(y > (size[1] - 1) * hy) { y = 2 * size[1] * hy - y; v=-v; }
                     } else {
                        y = y - (size[1] - 1) * hy;
                        s[3] = true;
                     }
                 }
-                if (iz >= size[2] - 1) {
+                if (iz >= size[2]) {
                     if(side[1]) {
-                        if(z > size[2] * hz) { z = 2 * size[2] * hz - z; w=-w; }
+                        if(z > (size[2] - 1) * hz) { z = 2 * size[2] * hz - z; w=-w; }
                     } else {
                         z = z - (size[2] - 1) * hz;
                         s[1] = true;

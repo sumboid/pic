@@ -138,7 +138,7 @@ public:
 
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
-      std::cout << id().c[0] << ": State: (" << iteration()  << ", " << progress()  << ", " << fs.size() <<  ")" << std::endl;
+      std::cout << id().c[0] << "-" << id().c[1] << ": State: (" << iteration()  << ", " << progress()  << ", " << fs.size() <<  ")" << std::endl;
       std::ofstream loadfile(std::to_string(nodeID()) + "-" + std::to_string(iteration()) + "-" +
                              std::to_string(progress()) + "-" + std::to_string(id().c[0]) + "-" +
                              std::to_string(id().c[1]) + "-" + std::to_string(id().c[2]) + "-" + std::to_string(id().c[3]) + ".load");
@@ -387,7 +387,8 @@ public:
 
   static Fragment* deserialize(ts::Arc* arc) {
     ts::Arc& a = *arc;
-    int x, y, z, s;
+    uint64_t x, y, z;
+    int s;
 
     a >> x;
     a >> y;
@@ -491,7 +492,7 @@ public:
   }
 
   bool canSplit() override {
-      return (10000 / weight()) < 2;
+      return (10000. / (weight() + 1)) < 2;
   }
 
   void merge(ts::type::Fragment*) override {}

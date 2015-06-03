@@ -29,7 +29,7 @@ namespace {
 
     const double PM = 1.0;
 
-    const int SPLITY = 8;
+    const int SPLITY = 4;
 
 }
 
@@ -181,10 +181,10 @@ int main()
   System* s = createSystem();
   auto id = s->id();
   auto size = s->size();
-  s->setBalancer(lazybalancer);
+  s->setBalancer(balancer);
 
-  for(uint64_t i = 0; i < SPLICY; ++i) {
-        Fragment* f = createFragment(id, size, );
+  for(uint64_t i = 0; i < SPLITY; ++i) {
+        Fragment* f = createFragment(id, size, i, SPLITY);
         s->addFragment(f);
   }
 
