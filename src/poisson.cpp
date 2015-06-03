@@ -293,7 +293,7 @@ int main()
 
   Fragment* f = createFragment(id, size, nx);
 
-  s->setBalancer(lazybalancer);
+  s->setBalancer(balancer);
   s->addFragment(f);
   s->run();
 

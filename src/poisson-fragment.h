@@ -139,7 +139,11 @@ public:
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
       std::cout << id().c[0] << ": State: (" << iteration()  << ", " << progress()  << ", " << fs.size() <<  ")" << std::endl;
+      std::ofstream loadfile(std::to_string(nodeID()) + "-" + std::to_string(iteration()) + "-" +
+                             std::to_string(progress()) + "-" + std::to_string(id().c[0]) + "-" +
+                             std::to_string(id().c[1]) + "-" + std::to_string(id().c[2]) + "-" + std::to_string(id().c[3]) + ".load");
 
+      loadfile << weight();
       if(state == DENSITY) {
           mesh->processDensity();
           if(isVirtual()) {
@@ -358,7 +362,27 @@ public:
     ts::Arc& a = *arc;
     a << id().c[0] << id().c[1] << id().c[2];
     a << (int)state;
-    mesh->serialize(arc);
+    a << fib;
+    a << rob;
+    a << pab;
+    a << rom;
+    a << msize;
+
+    mesh->serializeWithParticles(arc);
+
+    if(fib == true) {
+        Fi->serialize(arc);
+    }
+    else if(rob == true) {
+        Ro->serialize(arc);
+    }
+    else if(pab == true) {
+        particles->serialize(arc);
+    }
+    else if(rom == true) {
+        for(uint64_t i = 0; i < msize; ++i)
+            a << RoMesh[i];
+    }
   }
 
   static Fragment* deserialize(ts::Arc* arc) {
@@ -372,16 +396,55 @@ public:
 
     Fragment* f = new Fragment(ts::type::ID(x, y, z));
     f->state = (State) s;
+    a >> f->fib;
+    a >> f->rob;
+    a >> f->pab;
+    a >> f->rom;
+    a >> f->msize;
+
     f->setMesh(new Mesh(arc));
 
+    if(f->fib == true) {
+        f->Fi = FiBoundary::deserialize(arc);
+    }
+    else if(f->rob == true) {
+        f->Ro = RoBoundary::deserialize(arc);
+    }
+    else if(f->pab == true) {
+        f->particles = ParticleBoundary::deserialize(arc);
+    }
+    else if(f->rom == true) {
+        f->RoMesh = new double[f->msize];
+
+        for(uint64_t i = 0; i < f->msize; ++i)
+            a >> f->RoMesh[i];
+    }
     return f;
   }
 
   Fragment* copy() override {
     if(!isBoundary()) {
         Fragment* f = new Fragment(id());
-        f->setMesh(mesh->copy());
+        f->setMesh(mesh->copyWithParticles());
         f->state = state;
+        f->fib = fib;
+        f->rob = rob;
+        f->pab = pab;
+        f->rom = rom;
+        f->msize = msize;
+
+        if(fib == true) {
+            f->Fi = Fi->copy();
+        }
+        else if(rob == true) {
+            f->Ro = Ro->copy();
+        }
+        else if(pab == true) {
+            f->particles = particles->copy();
+        }
+        else if(rom == true) {
+            memcpy(f->RoMesh, RoMesh, msize* sizeof(double));
+        }
         return f;
     } else {
         Fragment* f = new Fragment(id());
@@ -414,7 +477,21 @@ public:
   }
 
   Fragment* split() override {
-      return copy();
+      Fragment* f = new Fragment(id());
+
+      f->fib = fib;
+      f->rob = rob;
+      f->pab = pab;
+      f->rom = rom;
+      f->msize = msize;
+
+      f->setMesh(mesh->split());
+
+      return f;
+  }
+
+  bool canSplit() override {
+      return (10000 / weight()) < 2;
   }
 
   void merge(ts::type::Fragment*) override {}
