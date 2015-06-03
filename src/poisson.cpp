@@ -29,6 +29,8 @@ namespace {
 
     const double PM = 1.0;
 
+    const int SPLITY = 8;
+
 }
 
 
@@ -70,171 +72,7 @@ std::tuple<int, int> interval(int current, int all, int size) {
    }
 }
 
-void fillFiBoom(Mesh* mesh, int b, int e) {
-    double x2,y2,z2,r;
-    int i,k,l;
-
-    if(b == 0) {
-        x2 = (hx / 2 - cx) * (hx / 2 - cx);
-        for (k=0;k<ny;k++)
-        {
-            y2 = (k * hy + hy / 2 - cy) * (k * hy + hy / 2 - cy);
-            for (l=0;l<nz;l++)
-            {
-                z2 = (l * hz + hz / 2 - cz) * (l * hz + hz / 2 - cz);
-                r=sqrt(x2 + y2 + z2);
-                mesh->setFi(0, k, l, -PM / r);
-            }
-        }
-    }
-
-    if(e == nx) {
-        x2 = (sx - hx / 2 - cx) * (sx - hx / 2 - cx);
-        for (k=0;k<ny;k++)
-        {
-            y2 = (k * hy + hy / 2 - cy) * (k * hy + hy / 2 - cy);
-            for (l=0;l<nz;l++)
-            {
-                z2 = (l * hz + hz / 2 - cz) * (l * hz + hz / 2 - cz);
-                r=sqrt(x2 + y2 + z2);
-                mesh->setFi(nx - 1, k, l, -PM / r);
-            }
-        }
-    }
-
-    y2 = (hy / 2 - cy) * (hy / 2 - cy);
-    for (i=b;i<e;i++)
-    {
-        x2 = (i * hx + hx / 2 - cx) * (i * hx + hx / 2 - cx);
-        for (l=0;l<nz;l++)
-        {
-            z2 = (l * hz + hz / 2 - cz) * (l * hz + hz / 2 - cz);
-            r=sqrt(x2 + y2 + z2);
-            mesh->setFi(i, 0, l, -PM / r);
-        }
-    }
-
-    y2 = (sy - hy / 2 - cy) * (sy - hy / 2 - cy);
-    for (i=b;i<e;i++)
-    {
-        x2 = (i * hx + hx / 2 - cx) * (i * hx + hx / 2 - cx);
-        for (l=0;l<nz;l++)
-        {
-            z2 = (l * hz + hz / 2 - cz) * (l * hz + hz / 2 - cz);
-            r=sqrt(x2 + y2 + z2);
-            mesh->setFi(i, ny - 1, l, -PM / r);
-        }
-    }
-
-    z2 = (hz / 2 - cz) * (hz / 2 - cz);
-    for (i=b;i<e;i++)
-    {
-        x2 = (i * hx + hx / 2 - cx) * (i * hx + hx / 2 - cx);
-        for (k=0;k<ny;k++)
-        {
-            y2 = (k * hy + hy / 2 - cy) * (k * hy + hy / 2 - cy);
-            r=sqrt(x2 + y2 + z2);
-            mesh->setFi(i, k, 0, -PM / r);
-        }
-    }
-
-    z2 = (sz - hz / 2 - cz) * (sz - hz / 2 - cz);
-    for (i=b;i<e;i++)
-    {
-        x2 = (i * hx + hx / 2 - cx) * (i * hx + hx / 2 - cx);
-        for (k=0;k<ny;k++)
-        {
-            y2 = (k * hy + hy / 2 - cy) * (k * hy + hy / 2 - cy);
-            r=sqrt(x2 + y2 + z2);
-            mesh->setFi(i, k, nz - 1, -PM / r);
-        }
-    }
-}
-
-void fillFi(Mesh* mesh, int b, int e) {
-    double x,y,z,x2,y2,z2,x2py2,x2pz2,r;
-    int i,k,l;
-
-
-
-    if(b == 0) {
-        x=-0.5*hx-cx;
-        x2=x*x;
-        for (k=0;k<ny;k++)
-        { y=(k-0.5)*hy-cy;
-            x2py2=x2+y*y;
-            for (l=0;l<nz;l++)
-            { z=(l-0.5)*hz-cz;
-                r=sqrt(x2py2+z*z);
-                mesh->setFi(0, k, l, -PM / r);
-            }
-        }
-    }
-
-    if(e == nx) {
-        x=sx+0.5*hx-cx;
-        x2=x*x;
-        for (k=0;k<ny;k++)
-        { y=(k-0.5)*hy-cy;
-            x2py2=x2+y*y;
-            for (l=0;l<nz;l++)
-            { z=(l-0.5)*hz-cz;
-                r=sqrt(x2py2+z*z);
-                mesh->setFi(nx - 1 - b, k, l, -PM / r);
-            }
-        }
-    }
-
-    y=-0.5*hy-cy;
-    y2=y*y;
-    for (i=b;i<e;i++)
-    { x=(i-0.5)*hx-cx;
-        x2py2=x*x+y2;
-        for (l=0;l<nz;l++)
-        { z=(l-0.5)*hz-cz;
-            r=sqrt(x2py2+z*z);
-            mesh->setFi(i, 0, l, -PM / r);
-        }
-    }
-
-    y=sy+0.5*hy-cy;
-    y2=y*y;
-    for (i=0;i<e -b;i++)
-    { x=(i-0.5)*hx-cx;
-        x2py2=x*x+y2;
-        for (l=0;l<nz;l++)
-        { z=(l-0.5)*hz-cz;
-            r=sqrt(x2py2+z*z);
-            mesh->setFi(i, ny - 1, l, -PM / r);
-        }
-    }
-
-    z=-0.5*hz-cz;
-    z2=z*z;
-    for (i=0;i<e - b;i++)
-    { x=(i-0.5)*hx-cx;
-        x2pz2=x*x+z2;
-        for (k=0;k<ny;k++)
-        { y=(k-0.5)*hy-cy;
-            r=sqrt(x2pz2+y*y);
-            mesh->setFi(i, k, 0, -PM / r);
-        }
-    }
-
-    z=sz+0.5*hz-cz;
-    z2=z*z;
-    for (i=0;i<e - b;i++)
-    { x=(i-0.5)*hx-cx;
-        x2pz2=x*x+z2;
-        for (k=0;k<ny;k++)
-        { y=(k-0.5)*hy-cy;
-            r=sqrt(x2pz2+y*y);
-            mesh->setFi(i, k, nz - 1, -PM / r);
-        }
-    }
-}
-
-void fillParticles(Mesh* mesh, int b, int e) {
+void fillParticles(Mesh* mesh, int bx, int ex, int by, int ey) {
     std::ifstream file("boom.dat");
     double x, y, z;
 
@@ -243,45 +81,98 @@ void fillParticles(Mesh* mesh, int b, int e) {
         double nx = x / hx;
         int ix = nx;
 
-        if(ix >= b && ix < e) {
-            mesh->addParticle(new Particle(x - (b * hx) + hx, y, z));
+        double ny = y / hy;
+        int iy = ny;
+
+        if(ix >= bx && ix < ex && iy >= by && iy < ey) {
+            mesh->addParticle(new Particle(x - (bx * hx) + hx, y - (by * hy) + hy, z));
         }
     }
 
     file.close();
 }
 
-Fragment* createFragment(int cur, int all, int size) {
-    int b, e;
-    std::tie(b, e) = interval(cur, all, size);
-    int s = e - b;
+Fragment* createFragment(int cx, int ax, int cy, int ay) {
+    int bx, ex, by, ey;
+    std::tie(bx, ex) = interval(cx, ax, nx);
+    std::tie(by, ey) = interval(cy, ay, ny);
 
-    Mesh* mesh = new Mesh(s, ny, nz);
-    mesh->setID(cur, 0, 0);
+    int sfx = ex - bx;
+    int sfy = ey - by;
+
+    Mesh* mesh = new Mesh(sfx, sfy, nz);
+    mesh->setID(cx, cy, 0);
     mesh->setSizes(sx, sy, sz, nx, ny, nz);
 
-    fillFi(mesh, b, e);
-    fillParticles(mesh, b, e);
+    fillParticles(mesh, bx, ex, by, ey);
 
 
-    Fragment* f = new Fragment(ts::type::ID(cur, 0, 0));
-    if(b > 0 && e < size) {
-        mesh->setSides(true, true, true, true, false, false);
-        f->addNeighbour(ts::type::ID(cur + 1, 0, 0), cur + 1);
-        f->addNeighbour(ts::type::ID(cur - 1, 0, 0), cur - 1);
+    Fragment* f = new Fragment(ts::type::ID(cx, cy, 0));
+    if(bx > 0 && ex < nx && by > 0 && ey < ny) {
+        mesh->setSides(true, true, false, false, false, false);
+        f->addNeighbour(ts::type::ID(cx + 1, cy, 0), cx + 1);
+        f->addNeighbour(ts::type::ID(cx - 1, cy, 0), cx - 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy + 1, 0), cx);
+        f->addNeighbour(ts::type::ID(cx, cy - 1, 0), cx);
     }
-    else if(b > 0) {
-        mesh->setSides(true, true, true, true, false, true);
-        f->addNeighbour(ts::type::ID(cur - 1, 0, 0), cur - 1);
+    else if(bx == 0 && ex < nx && by > 0 && ey < ny) {
+        mesh->setSides(true, true, false, false, true, false);
+        f->addNeighbour(ts::type::ID(cx + 1, cy, 0), cx + 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy + 1, 0), cx);
+        f->addNeighbour(ts::type::ID(cx, cy - 1, 0), cx);
     }
-    else if(e < size) {
-        mesh->setSides(true, true, true, true, true, false);
-        f->addNeighbour(ts::type::ID(cur + 1, 0, 0), cur + 1);
+    else if(bx > 0 && ex == nx && by > 0 && ey < ny) {
+        mesh->setSides(true, true, false, false, false, true);
+        f->addNeighbour(ts::type::ID(cx - 1, cy, 0), cx - 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy + 1, 0), cx);
+        f->addNeighbour(ts::type::ID(cx, cy - 1, 0), cx);
     }
+    else if(bx > 0 && ex < nx && by == 0 && ey < ny) {
+        mesh->setSides(true, true, true, false, false, false);
+        f->addNeighbour(ts::type::ID(cx + 1, cy, 0), cx + 1);
+        f->addNeighbour(ts::type::ID(cx - 1, cy, 0), cx - 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy + 1, 0), cx);
+    }
+    else if(bx == 0 && ex < nx && by == 0 && ey < ny) {
+        mesh->setSides(true, true, true, false, true, false);
+        f->addNeighbour(ts::type::ID(cx + 1, cy, 0), cx + 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy + 1, 0), cx);
+    }
+    else if(bx > 0 && ex == nx && by == 0 && ey < ny) {
+        mesh->setSides(true, true, true, false, false, true);
+        f->addNeighbour(ts::type::ID(cx - 1, cy, 0), cx - 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy + 1, 0), cx);
+    }
+    else if(bx > 0 && ex < nx && by > 0 && ey == ny) {
+        mesh->setSides(true, true, false, true, false, false);
+        f->addNeighbour(ts::type::ID(cx + 1, cy, 0), cx + 1);
+        f->addNeighbour(ts::type::ID(cx - 1, cy, 0), cx - 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy - 1, 0), cx);
+    }
+    else if(bx == 0 && ex < nx && by > 0 && ey == ny) {
+        mesh->setSides(true, true, false, true, true, false);
+        f->addNeighbour(ts::type::ID(cx + 1, cy, 0), cx + 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy - 1, 0), cx);
+    }
+    else if(bx > 0 && ex == nx && by > 0 && ey == ny) {
+        mesh->setSides(true, true, false, true, false, true);
+        f->addNeighbour(ts::type::ID(cx - 1, cy, 0), cx - 1);
+
+        f->addNeighbour(ts::type::ID(cx, cy - 1, 0), cx);
+    }
+
 
     f->setMesh(mesh);
-    std::cout << cur << ": Particles number " << f->weight() << std::endl;
-    std::cout << cur << ": [" << b << ", " << e << ")" << std::endl;
+    std::cout << cx << ": Particles number " << f->weight() << std::endl;
+    std::cout << cx << ": [" << bx << ", " << ex << ")" << std::endl;
     return f;
 }
 
@@ -290,11 +181,13 @@ int main()
   System* s = createSystem();
   auto id = s->id();
   auto size = s->size();
+  s->setBalancer(lazybalancer);
 
-  Fragment* f = createFragment(id, size, nx);
+  for(uint64_t i = 0; i < SPLICY; ++i) {
+        Fragment* f = createFragment(id, size, );
+        s->addFragment(f);
+  }
 
-  s->setBalancer(balancer);
-  s->addFragment(f);
   s->run();
 
   return 0;
