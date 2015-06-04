@@ -138,7 +138,7 @@ public:
 
 
   void runStep(std::vector<ts::type::Fragment*> fs) override {
-      std::cout << id().c[0] << "-" << id().c[1] << ": State: (" << iteration()  << ", " << progress()  << ", " << fs.size() <<  ")" << std::endl;
+      std::cout << id().c[0] << "-" << id().c[1] << "-" << id().c[2] << "-" << id().c[3] << ": State: (" << iteration()  << ", " << progress()  << ", " << fs.size() <<  ")" << std::endl;
       std::ofstream loadfile(std::to_string(nodeID()) + "-" + std::to_string(iteration()) + "-" +
                              std::to_string(progress()) + "-" + std::to_string(id().c[0]) + "-" +
                              std::to_string(id().c[1]) + "-" + std::to_string(id().c[2]) + "-" + std::to_string(id().c[3]) + ".load");
@@ -153,12 +153,14 @@ public:
               setUpdate();
           }
           if(isMaster()) {
+
               setVNeighbours(iteration(), progress());
           }
           next();
       } else if(state == MU_DENSITY) {
-          if(isMaster()) { //add it
+          if(isMaster()) {
               for(auto f: fs) {
+                  ULOG(error) << "I'm master" << UEND;
                   Fragment* rf = reinterpret_cast<Fragment*>(f);
                   mesh->updateRoM(rf->RoMesh, false);
               }
@@ -211,6 +213,7 @@ public:
       } else if(state == MOVE) {
           particles = mesh->moveParticles(iteration());
           if(isVirtual()) {
+              pab = true;
               saveState();
               setUpdate();
           }
@@ -288,10 +291,11 @@ public:
     }
     if(rom == true) {
         fragment->rom = true;
+        fragment->RoMesh = new double[msize];
         memcpy(fragment->RoMesh, RoMesh, msize * sizeof(double));
 
         rom = false;
-        delete RoMesh;
+        delete[] RoMesh;
     }
 
     return fragment;
@@ -438,6 +442,7 @@ public:
             f->particles = particles->copy();
         }
         else if(rom == true) {
+            f->RoMesh = new double[msize];
             memcpy(f->RoMesh, RoMesh, msize* sizeof(double));
         }
         return f;
@@ -459,6 +464,8 @@ public:
             f->particles = particles->copy();
         }
         else if(rom == true) {
+            ULOG(error) << "CREATE COPY OF BOUNDARY" << UEND;
+            f->RoMesh = new double[msize];
             memcpy(f->RoMesh, RoMesh, msize* sizeof(double));
         }
 
@@ -486,14 +493,13 @@ public:
   }
 
   bool canSplit() override {
-      ULOG(error) << "I CAN SPLIT" << UEND;
-      return (10000. / (weight() + 1)) < 2;
+      return (10000. / (weight() + 1)) < 2 && !isVirtual();
   }
 
   void merge(ts::type::Fragment*) override {}
 
   bool canMove() override {
-      return state == DENSITY;
+      return state == DENSITY || progress() == 0;
   }
 };
 

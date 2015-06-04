@@ -1686,7 +1686,10 @@ class Mesh {
         }
 
         double* getRoM() {
+           // ULOG(error) << "SIZE OF ROM = " << rsize() << UEND;
+
             double* r = new double[size[0] * size[1] * size[2]];
+
             for(int i = 0; i < size[0] * size[1] * size[2]; ++i) {
                 r[i] = Ro[i];
             }
