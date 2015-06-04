@@ -360,7 +360,6 @@ public:
 
   void serialize(ts::Arc* arc) {
     ts::Arc& a = *arc;
-    a << id().c[0] << id().c[1] << id().c[2];
     a << (int)state;
     a << fib;
     a << rob;
@@ -387,15 +386,10 @@ public:
 
   static Fragment* deserialize(ts::Arc* arc) {
     ts::Arc& a = *arc;
-    uint64_t x, y, z;
     int s;
-
-    a >> x;
-    a >> y;
-    a >> z;
     a >> s;
 
-    Fragment* f = new Fragment(ts::type::ID(x, y, z));
+    Fragment* f = new Fragment(ts::type::ID(0,0,0));
     f->state = (State) s;
     a >> f->fib;
     a >> f->rob;
@@ -492,10 +486,15 @@ public:
   }
 
   bool canSplit() override {
+      ULOG(error) << "I CAN SPLIT" << UEND;
       return (10000. / (weight() + 1)) < 2;
   }
 
   void merge(ts::type::Fragment*) override {}
+
+  bool canMove() override {
+      return state == DENSITY;
+  }
 };
 
 class FragmentTools: public ts::type::FragmentTools {

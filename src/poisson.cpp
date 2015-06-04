@@ -42,14 +42,65 @@ System* createSystem() {
 
 std::map<int, double> balancer(uint64_t o, std::map<int, uint64_t> ns) {
   uint64_t co = o;
+  const int THRESHOLD = 1000;
+  if(co == 0) {
+      return std::map<int, double>();
+  }
   std::map<int, double> r;
 
+  std::map<int, int> diff;
+
   for(auto& n : ns) {
-    if(n.second < co) {
-      uint64_t m = (co - n.second) / 2;
-      co -= m;
-      r[n.first] = m / o;
-    }
+      diff[n.first] = co - n.second;
+  }
+
+  bool everythingLess = true;
+  bool everythingMore = true;
+  for(auto& d : diff) {
+      if(d.second < -THRESHOLD) {
+          everythingLess = false;
+      }
+      else if(d.second > THRESHOLD){
+          everythingMore = false;
+      }
+  }
+
+  if(everythingLess) {
+      if(ns.size() == 2) {
+          int map[2];
+          int load[2];
+          int counter = 0;
+          for(auto& n : ns) {
+              map[counter] = n.first;
+              load[counter] = n.second;
+              counter++;
+          }
+
+          int ldiff = load[0] > load[1] ? load[0] - load[1] : load[1] - load[0];
+          if(ldiff < 500) {
+            r[map[0]] = ((co + load[1] - 2 * load[0]) / 3.) / co;
+            r[map[1]] = ((co + load[0] - 2 * load[1]) / 3.) / co;
+          } else {
+              if(load[0] > load[1]) {
+                  r[map[1]] = ((co - load[1]) / 2) / co;
+              } else {
+                  r[map[0]] = ((co - load[0]) / 2) / co;
+              }
+          }
+      }
+  } else if(everythingMore) {
+//      auto msg = ULOG(error) << "SORRY: ";
+//      for(auto d : diff) {
+//          msg << d.second << " ";
+//      }
+//      msg << "(" << ns.size() << ")";
+//      msg << UEND;
+  } else {
+      for(auto d: diff) {
+          if(d.second > THRESHOLD) {
+              r[d.first] = (d.second / 2) / co;
+          }
+      }
   }
 
   return r;

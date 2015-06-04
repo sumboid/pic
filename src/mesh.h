@@ -99,7 +99,9 @@ class Mesh {
 
         Mesh(ts::Arc* arc) {
             ts::Arc& a = *arc;
-            a >> id[0] >> id[1] >> id[2];
+            a >> id[0];
+            a >> id[1];
+            a >> id[2];
             a >> size[0];
             a >> size[1];
             a >> size[2];
@@ -137,6 +139,7 @@ class Mesh {
             int particles = 0;
             a >> particles;
             if(particles == 1) {
+                ULOG(error) << "HAVE PARTICLES YAY" << UEND;
                 uint64_t number;
                 a >> number;
                 for(uint64_t i = 0; i < number; ++i) {
@@ -637,7 +640,6 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(auto p : b->YZ1) {
                         auto particle = p->copy();
-                        std::cout << "GOT PARTICLE FROM YZ1: " << particle->x() << std::endl;
                         particle->x((size[0] - 2) * hx + p->x());
                         ps.push_back(particle);
                     }
@@ -648,7 +650,6 @@ class Mesh {
                         bid[2] == id[2]) {
                     for(auto p : b->YZ2) {
                         auto particle = p->copy();
-                        std::cout << "GOT PARTICLE FROM YZ2: " << particle->x() << std::endl;
                         particle->x(hx + p->x());
                         ps.push_back(particle);
                     }
@@ -680,6 +681,7 @@ class Mesh {
                         bid[1]  < id[1] &&
                         bid[2] == id[2]) {
                     for(auto p : b->XZ2YZ1) {
+                        std::cout << "GOT PARTICLE FROM XZ2YZ1: " << p->y() << std::endl;
                         auto particle = p->copy();
                         particle->x((size[0] - 2) * hx + p->x());
                         particle->y(hy + p->y());
@@ -1392,21 +1394,21 @@ class Mesh {
                     if(side[4]) {
                         if(x < 1) { u=-u; x=-x; }
                     } else {
-                       s[4] = true;
+                       s[YZ1] = true;
                     }
                 }
                 if (iy <= 0) {
                     if(side[2]) {
                        if(y < 1) { v=-v; y=-y; }
                     } else {
-                       s[2] = true;
+                       s[XZ1] = true;
                     }
                 }
                 if (iz <= 0) {
                     if(side[0]) {
                        if(z < 1) { z=-z; w=-w; }
                     } else {
-                       s[0] = true;
+                       s[XY1] = true;
                     }
                 }
 
@@ -1415,7 +1417,7 @@ class Mesh {
                        if(x > (size[0] - 1) * hx) { x = 2 * size[0] * hx - x; u=-u; }
                     } else {
                        x = x - (size[0] - 1) * hx;
-                       s[5] = true;
+                       s[YZ2] = true;
                     }
                 }
                 if (iy >= size[1]) {
@@ -1423,7 +1425,7 @@ class Mesh {
                        if(y > (size[1] - 1) * hy) { y = 2 * size[1] * hy - y; v=-v; }
                     } else {
                        y = y - (size[1] - 1) * hy;
-                       s[3] = true;
+                       s[XZ2] = true;
                     }
                 }
                 if (iz >= size[2]) {
@@ -1431,7 +1433,7 @@ class Mesh {
                         if(z > (size[2] - 1) * hz) { z = 2 * size[2] * hz - z; w=-w; }
                     } else {
                         z = z - (size[2] - 1) * hz;
-                        s[1] = true;
+                        s[XY2] = true;
                     }
                 }
 
@@ -1501,6 +1503,7 @@ class Mesh {
                     remove.push_back((*p));
                 }
                 else if(s[XZ2] && s[YZ1]) {
+                    std::cout << "PUT PARTICLE TO XZ2YZ1: " << std::endl;
                     boundary->XZ2YZ1.push_back((*p)->copy());
                     remove.push_back((*p));
                 }
@@ -1553,7 +1556,6 @@ class Mesh {
             for(auto r : remove) {
                 auto it = std::find(ps.begin(), ps.end(), r);
                 if(it != ps.end()) {
-                   // std::cout << id[0] << ": REMOVE PARTICLE" << std::endl;
                     delete *it;
                     ps.erase(it);
                 }
@@ -1569,7 +1571,9 @@ class Mesh {
         }
 
         uint64_t particlesNumber() {
-            return ps.size();
+            uint64_t counter = 0;
+            for(auto it = ps.begin(); it != ps.end(); ++it) counter++;
+            return counter;
         }
 
         FiBoundary* getFiBoundary() {
